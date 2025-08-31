@@ -1,0 +1,40 @@
+package com.example.playlistmaker
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageView
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class SettingsActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_settings)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+//        val backButton = findViewById<ImageView>(R.id.arrow_back)
+//
+//        backButton.setOnClickListener {
+//            finish()
+//        }
+
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        // Включаем кнопку "Назад"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        // Обработчик нажатия на стрелку
+        toolbar.setNavigationOnClickListener {
+            finish()
+        }
+
+    }
+}
