@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_size_base">22sp</dimen>
+    <dimen name="radius">16dp</dimen>
+    <dimen name="icon_pad">8dp</dimen>
+    <dimen name="padding_left_and_right">16dp</dimen>
+    <dimen name="text_size_settings">16sp</dimen>
+    <dimen name="text_padding_start">16dp</dimen>
+    <dimen name="text_padding_top_and_bottom">21dp</dimen>
+</resources>

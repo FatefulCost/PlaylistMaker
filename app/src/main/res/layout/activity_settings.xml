@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".SettingsActivity"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+        android:id="@+id/arrow_back"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/arrow"
+        android:scaleType="center"
+        android:paddingTop="4dp"
+        android:paddingStart="4dp"
+        />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:text="@string/settings"
+            android:textColor="@color/black"
+            android:textSize="@dimen/text_size_base"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            />
+
+
+    </LinearLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="24dp">
+
+        <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:text="@string/night_theme"
+        android:textColor="@color/black"
+        android:textSize="@dimen/text_size_settings"
+        android:paddingStart="@dimen/text_padding_start"
+        android:paddingTop="@dimen/text_padding_top_and_bottom"
+        android:paddingBottom="@dimen/text_padding_top_and_bottom"
+            tools:ignore="RtlSymmetry" />
+        <Switch
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml"
+            android:layout_gravity="end"
+            android:paddingTop="28dp"
+            android:paddingBottom="21dp">
+
+        </Switch>
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:text="@string/share"
+        android:textColor="@color/black"
+        android:textSize="@dimen/text_size_settings"
+        android:paddingStart="@dimen/text_padding_start"
+        android:paddingTop="@dimen/text_padding_top_and_bottom"
+        android:paddingBottom="@dimen/text_padding_top_and_bottom"
+        android:paddingEnd="16dp"
+        app:drawableEndCompat="@drawable/vector_share" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:text="@string/support"
+            android:textColor="@color/black"
+            android:textSize="@dimen/text_size_settings"
+            android:paddingStart="@dimen/text_padding_start"
+            android:paddingTop="@dimen/text_padding_top_and_bottom"
+            android:paddingBottom="@dimen/text_padding_top_and_bottom"
+            android:paddingEnd="12dp"
+            app:drawableEndCompat="@drawable/support" />
+    </FrameLayout>
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:text="@string/agreement"
+            android:textColor="@color/black"
+            android:textSize="@dimen/text_size_settings"
+            android:paddingStart="@dimen/text_padding_start"
+            android:paddingTop="@dimen/text_padding_top_and_bottom"
+            android:paddingBottom="@dimen/text_padding_top_and_bottom"
+            android:paddingEnd="18dp"
+            app:drawableEndCompat="@drawable/arrow_right" />
+    </FrameLayout>
+
+</LinearLayout>
+
+

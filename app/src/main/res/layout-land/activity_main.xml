@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/basic_blue"
+    android:background="#3772E7"
     android:orientation="vertical"
 
     android:paddingBottom="28dp">
@@ -12,8 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
-        android:paddingLeft="@dimen/padding_left_and_right"
-        android:paddingRight="@dimen/padding_left_and_right">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
 
 
         <TextView
@@ -22,7 +22,7 @@
             android:layout_gravity="start"
             android:text="@string/play_list"
             android:textColor="@color/white"
-            android:textSize="@dimen/text_size_base" />
+            android:textSize="22sp" />
 
     </FrameLayout>
 
@@ -33,11 +33,10 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingLeft="@dimen/padding_left_and_right"
-        android:paddingRight="@dimen/padding_left_and_right">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
 
         <Button
-            android:id="@+id/button1"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -45,15 +44,14 @@
             android:text="@string/search"
             android:textAllCaps="false"
             android:textColor="@color/black"
-            android:textSize="@dimen/text_size_base"
-            app:cornerRadius="@dimen/radius"
+            android:textSize="22sp"
+            app:cornerRadius="16dp"
             app:icon="@drawable/vector_lupa"
             app:iconGravity="textStart"
-            app:iconPadding="@dimen/icon_pad"
+            app:iconPadding="8dp"
             app:iconTint="@color/black" />
 
         <Button
-            android:id="@+id/button2"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -61,15 +59,14 @@
             android:text="@string/media"
             android:textAllCaps="false"
             android:textColor="@color/black"
-            android:textSize="@dimen/text_size_base"
-            app:cornerRadius="@dimen/radius"
+            android:textSize="22sp"
+            app:cornerRadius="16dp"
             app:icon="@drawable/vector"
             app:iconGravity="textStart"
-            app:iconPadding="@dimen/icon_pad"
+            app:iconPadding="8dp"
             app:iconTint="@color/black" />
 
         <Button
-            android:id="@+id/button3"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -77,11 +74,11 @@
             android:text="@string/settings"
             android:textAllCaps="false"
             android:textColor="@color/black"
-            android:textSize="@dimen/text_size_base"
-            app:cornerRadius="@dimen/radius"
+            android:textSize="22sp"
+            app:cornerRadius="16dp"
             app:icon="@drawable/group"
             app:iconGravity="textStart"
-            app:iconPadding="@dimen/icon_pad"
+            app:iconPadding="8dp"
             app:iconTint="@color/black" />
 
     </LinearLayout>
