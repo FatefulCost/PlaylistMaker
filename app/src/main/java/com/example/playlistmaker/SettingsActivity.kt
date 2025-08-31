@@ -19,9 +19,20 @@ class SettingsActivity : AppCompatActivity() {
             insets
         }
 
-        val backButton = findViewById<ImageView>(R.id.arrow_back)
+//        val backButton = findViewById<ImageView>(R.id.arrow_back)
+//
+//        backButton.setOnClickListener {
+//            finish()
+//        }
 
-        backButton.setOnClickListener {
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        // Включаем кнопку "Назад"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        // Обработчик нажатия на стрелку
+        toolbar.setNavigationOnClickListener {
             finish()
         }
 

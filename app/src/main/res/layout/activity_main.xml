@@ -5,36 +5,41 @@
     android:layout_height="match_parent"
     android:background="@color/basic_blue"
     android:orientation="vertical"
-
+    android:layout_weight="1"
+    android:gravity="center"
+    android:paddingLeft="@dimen/padding_left_and_right"
+    android:paddingRight="@dimen/padding_left_and_right"
     android:paddingBottom="28dp">
 
-    <FrameLayout
+    <com.google.android.material.appbar.MaterialToolbar
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:paddingLeft="@dimen/padding_left_and_right"
-        android:paddingRight="@dimen/padding_left_and_right">
+        android:layout_height="?attr/actionBarSize"
+
+        android:layout_marginBottom="40dp"
+        app:title="@string/play_list"
+        style="@style/CustomToolbarStyle"
+        >
 
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/play_list"
-            android:textColor="@color/white"
-            android:textSize="@dimen/text_size_base" />
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="start"-->
+<!--            android:text="@string/play_list"-->
+<!--            android:textColor="@color/white"-->
+<!--            android:textSize="@dimen/text_size_base" />-->
 
-    </FrameLayout>
+    </com.google.android.material.appbar.MaterialToolbar>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="40dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingLeft="@dimen/padding_left_and_right"
-        android:paddingRight="@dimen/padding_left_and_right">
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_marginTop="40dp"-->
+<!--        android:layout_weight="1"-->
+<!--        android:gravity="center"-->
+<!--        android:orientation="vertical"-->
+<!--        android:paddingLeft="@dimen/padding_left_and_right"-->
+<!--        android:paddingRight="@dimen/padding_left_and_right">-->
 
         <Button
             android:id="@+id/button1"
@@ -86,4 +91,4 @@
 
     </LinearLayout>
 
-</LinearLayout>
+<!--</LinearLayout>-->
