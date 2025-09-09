@@ -47,7 +47,6 @@ class SearchActivity : AppCompatActivity() {
         inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
         setupSearchField()
-        showKeyboard()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -91,11 +90,9 @@ class SearchActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // Автофокус и показ клавиатуры при касании поля
-        searchEditText.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                showKeyboard()
-            }
+        // Показ клавиатуры при касании поля
+        searchEditText.setOnClickListener {
+            showKeyboard()
         }
 
         // Обработка клика на иконку очистки

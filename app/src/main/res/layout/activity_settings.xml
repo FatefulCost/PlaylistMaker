@@ -20,33 +20,6 @@
 
     </com.google.android.material.appbar.MaterialToolbar>
 
-<!--    <LinearLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content">-->
-
-<!--        <ImageView-->
-<!--        android:id="@+id/arrow_back"-->
-<!--        android:layout_width="48dp"-->
-<!--        android:layout_height="48dp"-->
-<!--        android:src="@drawable/arrow"-->
-<!--        android:scaleType="center"-->
-<!--        android:paddingTop="4dp"-->
-<!--        android:paddingStart="4dp"-->
-<!--        />-->
-
-<!--        <TextView-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent"-->
-<!--            android:layout_gravity="start"-->
-<!--            android:text="@string/settings"-->
-<!--            android:textColor="@color/black"-->
-<!--            android:textSize="@dimen/text_size_base"-->
-<!--            android:paddingStart="16dp"-->
-<!--            android:paddingTop="10dp"-->
-<!--            />-->
-
-
-<!--    </LinearLayout>-->
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:layout_width="match_parent"
@@ -59,32 +32,6 @@
         app:thumbTint="@color/switch_circle_color"
         app:trackTint="@color/switch_line_color" />
 
-<!--    <FrameLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:paddingTop="24dp">-->
-
-<!--        <TextView-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        android:layout_gravity="start"-->
-<!--        android:text="@string/night_theme"-->
-<!--        android:textColor="@color/black"-->
-<!--        android:textSize="@dimen/text_size_settings"-->
-<!--        android:paddingStart="@dimen/text_padding_start"-->
-<!--        android:paddingTop="@dimen/text_padding_top_and_bottom"-->
-<!--        android:paddingBottom="@dimen/text_padding_top_and_bottom"-->
-<!--            tools:ignore="RtlSymmetry" />-->
-<!--        <Switch-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent"-->
-<!--            tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml"-->
-<!--            android:layout_gravity="end"-->
-<!--            android:paddingTop="28dp"-->
-<!--            android:paddingBottom="21dp">-->
-
-<!--        </Switch>-->
-<!--    </FrameLayout>-->
 
     <FrameLayout
         android:layout_width="match_parent"

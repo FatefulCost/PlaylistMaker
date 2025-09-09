@@ -10,7 +10,7 @@
     <string name="support" translatable="false">Написать в поддержку</string>
     <string name="agreement" translatable="false">Пользовательское соглашение</string>
 
-    <string name="share_message" translatable="false">https://practicum.yandex.ru/profile/android-developer/</string>
+    <string name="share_message" translatable="false">https://practicum.yandex.ru/android-developer/?from=catalog</string>
     <string name="share_message_extra_subject" translatable="false">Пользовательское соглашение</string>
     <string name="share_message_extra_intent" translatable="false">Пользовательское соглашение</string>
 

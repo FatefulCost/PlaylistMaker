@@ -48,7 +48,8 @@
             android:paddingEnd="12dp"
             android:textSize="16sp"
             android:textColorHint="@color/search_hint_color"
-            android:textColor="@color/search_text_color"/>
+            android:textColor="@color/search_text_color"
+            android:textCursorDrawable="@drawable/cursor_color"/>
 
 
     </LinearLayout>
