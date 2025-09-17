@@ -10,4 +10,18 @@
     <string name="support" translatable="false">Написать в поддержку</string>
     <string name="agreement" translatable="false">Пользовательское соглашение</string>
 
+    <string name="share_message" translatable="false">https://practicum.yandex.ru/android-developer/?from=catalog</string>
+    <string name="share_message_extra_subject" translatable="false">Пользовательское соглашение</string>
+    <string name="share_message_extra_intent" translatable="false">Пользовательское соглашение</string>
+
+    <string name="email" translatable="false">FatefulCost@yandex.ru</string>
+    <string name="email_subject" translatable="false">Сообщение разработчикам и разработчицам приложения Playlist Maker</string>
+    <string name="email_body" translatable="false">Спасибо разработчикам и разработчицам за крутое приложение!</string>
+    <string name="email_chose" translatable="false">Выберите почтовый клиент</string>
+    <string name="email_error" translatable="false">Почтовое приложение не найдено. Установите email клиент.</string>
+
+    <string name="terms_url" translatable="false">https://yandex.ru/legal/practicum_offer/ru/</string>
+    <string name="terms_error" translatable="false">Браузер не найден. Установите браузер из Play Store</string>
+
 </resources>
+
