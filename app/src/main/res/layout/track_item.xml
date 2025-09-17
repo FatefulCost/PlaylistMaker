@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="61dp">
+
+    <ImageView
+        android:id="@+id/artworkImageView"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/trackNameTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="44dp"
+        android:layout_marginTop="6dp"
+        android:text="Пример текста"
+        android:fontFamily="@font/ys_display_regular"
+        android:textSize="16sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="@color/song_name_text_color"
+        app:layout_constraintStart_toEndOf="@id/artworkImageView"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/arrowImageView" />
+
+    <LinearLayout
+        android:id="@+id/artistTimeContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintStart_toEndOf="@id/artworkImageView"
+        app:layout_constraintTop_toBottomOf="@id/trackNameTextView"
+        app:layout_constraintEnd_toEndOf="@id/arrowImageView">
+
+        <!-- Имя исполнителя -->
+        <TextView
+            android:id="@+id/artistNameTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Пример текста"
+            android:fontFamily="@font/ys_display_regular"
+            android:textSize="11sp"
+            android:textColor="@color/song_artist_name_text_color"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <!-- Иконка точки -->
+        <TextView
+            android:id="@+id/dotTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:text="•"
+            android:textSize="13sp"
+            android:textColor="@color/song_artist_name_text_color" />
+
+        <!-- Время трека -->
+        <TextView
+            android:id="@+id/trackTimeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2:55"
+            android:fontFamily="@font/ys_display_regular"
+            android:textSize="14sp"
+            android:textColor="@color/song_artist_name_text_color" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/arrowImageView"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/arrow_right"
+        android:contentDescription="Стрелка"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

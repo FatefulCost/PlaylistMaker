@@ -12,11 +12,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class SearchActivity : AppCompatActivity() {
     private lateinit var searchEditText: EditText
+    private lateinit var tracksRecyclerView: RecyclerView
     private lateinit var inputMethodManager: InputMethodManager
     private var searchQuery: String = ""
+    private lateinit var tracksAdapter: TracksAdapter
+    private val tracksList = ArrayList<Track>()
 
     companion object {
         private const val SEARCH_QUERY_KEY = "search_query_key"
@@ -44,10 +49,65 @@ class SearchActivity : AppCompatActivity() {
         }
 
         searchEditText = findViewById(R.id.search_edit_text)
+        tracksRecyclerView = findViewById(R.id.tracks_recycler_view)
         inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
         setupSearchField()
+        setupRecyclerView()
+        loadTracks()
     }
+
+    private fun setupRecyclerView() {
+        tracksAdapter = TracksAdapter()
+        tracksRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@SearchActivity)
+            adapter = tracksAdapter
+            setHasFixedSize(true)
+        }
+    }
+
+    private fun loadTracks() {
+        tracksList.clear()
+
+        // Добавляем треки по одному в ArrayList
+        tracksList.add(Track(
+            getString(R.string.song1_name),
+            getString(R.string.song1_band),
+            getString(R.string.song1_time),
+            getString(R.string.song1_url)
+        ))
+
+        tracksList.add(Track(
+            getString(R.string.song2_name),
+            getString(R.string.song2_band),
+            getString(R.string.song2_time),
+            getString(R.string.song2_url)
+        ))
+
+        tracksList.add(Track(
+            getString(R.string.song3_name),
+            getString(R.string.song3_band),
+            getString(R.string.song3_time),
+            getString(R.string.song3_url)
+        ))
+
+        tracksList.add(Track(
+            getString(R.string.song4_name),
+            getString(R.string.song4_band),
+            getString(R.string.song4_time),
+            getString(R.string.song4_url)
+        ))
+
+        tracksList.add(Track(
+            getString(R.string.song5_name),
+            getString(R.string.song5_band),
+            getString(R.string.song5_time),
+            getString(R.string.song5_url)
+        ))
+
+        tracksAdapter.updateTracks(tracksList)
+    }
+
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
