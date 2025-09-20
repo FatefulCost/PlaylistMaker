@@ -5,9 +5,14 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.MotionEvent
+import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -16,150 +21,119 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 class SearchActivity : AppCompatActivity() {
+    // lateinit переменные для View элементов
     private lateinit var searchEditText: EditText
     private lateinit var tracksRecyclerView: RecyclerView
+    private lateinit var placeholderLayout: View
+    private lateinit var placeholderIcon: ImageView
+    private lateinit var placeholderText: TextView
+    private lateinit var retryButton: Button
     private lateinit var inputMethodManager: InputMethodManager
-    private var searchQuery: String = ""
+
+    // Используем ViewModel для управления состоянием
+    private val viewModel: SearchViewModel by viewModels()
     private lateinit var tracksAdapter: TracksAdapter
-    private val tracksList = ArrayList<Track>()
 
     companion object {
-        private const val SEARCH_QUERY_KEY = "search_query_key"
+        private const val SEARCH_QUERY_KEY = "search_query_key" // Ключ для сохранения состояния
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_search)
+
+        // Обработка системных отступов (для notch экранов)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.search_activity)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar_search)
-        setSupportActionBar(toolbar)
+        initViews()          // Инициализация View элементов
+        setupToolbar()       // Настройка тулбара
+        setupSearchField()   // Настройка поля поиска
+        setupRecyclerView()  // Настройка RecyclerView
+        setupObservers()     // Настройка наблюдения за ViewModel
+    }
 
-        // Включаем кнопку "Назад"
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        // Обработчик нажатия на стрелку
-        toolbar.setNavigationOnClickListener {
-            finish()
-        }
-
+    private fun initViews() {
         searchEditText = findViewById(R.id.search_edit_text)
         tracksRecyclerView = findViewById(R.id.tracks_recycler_view)
+        placeholderLayout = findViewById(R.id.placeholder_layout)
+        placeholderIcon = findViewById(R.id.placeholder_icon)
+        placeholderText = findViewById(R.id.placeholder_text)
+        retryButton = findViewById(R.id.retry_button)
         inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+    }
 
-        setupSearchField()
-        setupRecyclerView()
-        loadTracks()
+    private fun setupToolbar() {
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar_search)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Показываем кнопку назад
+        toolbar.setNavigationOnClickListener { finish() } // Закрываем Activity при нажатии
     }
 
     private fun setupRecyclerView() {
         tracksAdapter = TracksAdapter()
         tracksRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@SearchActivity)
-            adapter = tracksAdapter
-            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(this@SearchActivity) // Вертикальный список
+            adapter = tracksAdapter                                  // Наш адаптер
+            setHasFixedSize(true)                                    // Оптимизация производительности
         }
     }
 
-    private fun loadTracks() {
-        tracksList.clear()
-
-        // Добавляем треки по одному в ArrayList
-        tracksList.add(Track(
-            getString(R.string.song1_name),
-            getString(R.string.song1_band),
-            getString(R.string.song1_time),
-            getString(R.string.song1_url)
-        ))
-
-        tracksList.add(Track(
-            getString(R.string.song2_name),
-            getString(R.string.song2_band),
-            getString(R.string.song2_time),
-            getString(R.string.song2_url)
-        ))
-
-        tracksList.add(Track(
-            getString(R.string.song3_name),
-            getString(R.string.song3_band),
-            getString(R.string.song3_time),
-            getString(R.string.song3_url)
-        ))
-
-        tracksList.add(Track(
-            getString(R.string.song4_name),
-            getString(R.string.song4_band),
-            getString(R.string.song4_time),
-            getString(R.string.song4_url)
-        ))
-
-        tracksList.add(Track(
-            getString(R.string.song5_name),
-            getString(R.string.song5_band),
-            getString(R.string.song5_time),
-            getString(R.string.song5_url)
-        ))
-
-        tracksAdapter.updateTracks(tracksList)
-    }
-
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        // Сохраняем текущий текст поиска в Bundle
-        outState.putString(SEARCH_QUERY_KEY, searchQuery)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        // Достаем сохраненные данные из Bundle
-        val savedQuery = savedInstanceState.getString(SEARCH_QUERY_KEY, "")
-        // Устанавливаем восстановленные данные обратно в EditText
-        searchEditText.setText(savedQuery)
-        searchQuery = savedQuery
-        // Обновляем иконку очистки
-        updateClearIcon(savedQuery)
+    private fun setupObservers() {
+        viewModel.searchState.observe(this) { state ->
+            when (state) {
+                is SearchState.Success -> {
+                    if (state.tracks.isEmpty()) {
+                        showLoading() // Пустой список = показываем загрузку
+                    } else {
+                        showResults(state.tracks) // Непустой список = показываем результаты
+                    }
+                }
+                is SearchState.Error -> showError(state.message)
+                is SearchState.Empty -> showEmptyResults()
+            }
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupSearchField() {
-        // Устанавливаем иконку поиска
+        // Устанавливаем иконку поиска слева
         val searchIcon = ContextCompat.getDrawable(this, R.drawable.vector_lupa_search)
         searchEditText.setCompoundDrawablesWithIntrinsicBounds(
-            searchIcon,  // left
-            null,        // top
-            null,        // right
-            null         // bottom
+            searchIcon, null, null, null
         )
 
-        // Используем TextWatcher для сохранения значения строки поля ввода в переменную
+        // Слушатель изменений текста для обновления иконки очистки
         searchEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Сохраняем значение строки поля ввода в переменную
-                searchQuery = s?.toString() ?: ""
-                updateClearIcon(s)
+                updateClearIcon(s) // Обновляем иконку очистки
             }
-
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // Показ клавиатуры при касании поля
-        searchEditText.setOnClickListener {
-            showKeyboard()
+        // Обработка нажатия кнопки Done на клавиатуре
+        searchEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                performSearch() // Выполняем поиск
+                hideKeyboard()  // Скрываем клавиатуру
+                return@setOnEditorActionListener true
+            }
+            false
         }
 
-        // Обработка клика на иконку очистки
+        // Показ клавиатуры при касании поля
+        searchEditText.setOnClickListener { showKeyboard() }
+
+        // Обработка касания иконки очистки (справа)
         searchEditText.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 val editText = v as EditText
-                val drawableRight = editText.compoundDrawables[2]
+                val drawableRight = editText.compoundDrawables[2] // Правая иконка
 
                 if (drawableRight != null) {
                     // Вычисляем область иконки очистки
@@ -169,9 +143,7 @@ class SearchActivity : AppCompatActivity() {
 
                     // Проверяем, было ли касание в области иконки
                     if (event.rawX >= clearIconStart) {
-                        editText.setText("")
-                        searchQuery = "" // Очищаем переменную
-                        hideKeyboard()
+                        clearSearch() // Очищаем поиск
                         return@setOnTouchListener true
                     }
                 }
@@ -180,7 +152,57 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
+    private fun performSearch() {
+        val query = searchEditText.text.toString().trim()
+        if (query.isNotBlank()) {
+            viewModel.searchTracks(query) // Запускаем поиск через ViewModel
+        }
+    }
+
+    private fun clearSearch() {
+        searchEditText.setText("")        // Очищаем текст
+        hideKeyboard()                    // Скрываем клавиатуру
+        tracksRecyclerView.visibility = View.GONE    // Скрываем список
+        placeholderLayout.visibility = View.GONE     // Скрываем плейсхолдер
+        updateClearIcon("")               // Обновляем иконку
+    }
+
+    private fun showLoading() {
+        tracksRecyclerView.visibility = View.GONE
+        placeholderLayout.visibility = View.VISIBLE
+        // Вместо иконки загрузки, используем только текст
+        placeholderIcon.visibility = View.GONE
+        placeholderText.text = getString(R.string.search_loading)
+        retryButton.visibility = View.GONE
+    }
+
+    private fun showResults(tracks: List<Track>) {
+        tracksRecyclerView.visibility = View.VISIBLE
+        placeholderLayout.visibility = View.GONE
+        tracksAdapter.updateTracks(tracks)
+    }
+
+    private fun showEmptyResults() {
+        tracksRecyclerView.visibility = View.GONE
+        placeholderLayout.visibility = View.VISIBLE
+        placeholderIcon.visibility = View.VISIBLE // Показываем иконку для "ничего не найдено"
+        placeholderIcon.setImageResource(R.drawable.nothing_found)
+        placeholderText.text = getString(R.string.search_empty)
+        retryButton.visibility = View.GONE
+    }
+
+    private fun showError(message: String) {
+        tracksRecyclerView.visibility = View.GONE
+        placeholderLayout.visibility = View.VISIBLE
+        placeholderIcon.visibility = View.VISIBLE // Показываем иконку для ошибки
+        placeholderIcon.setImageResource(R.drawable.no_network)
+        placeholderText.text = message
+        retryButton.visibility = View.VISIBLE
+        retryButton.setOnClickListener { viewModel.retryLastSearch() }
+    }
+
     private fun updateClearIcon(text: CharSequence?) {
+        // Показываем иконку очистки только если есть текст
         val clearIcon = if (text.isNullOrEmpty()) {
             null
         } else {
@@ -188,27 +210,39 @@ class SearchActivity : AppCompatActivity() {
         }
 
         val searchIcon = ContextCompat.getDrawable(this, R.drawable.vector_lupa_search)
-
         searchEditText.setCompoundDrawablesWithIntrinsicBounds(
-            searchIcon,  // left
-            null,        // top
-            clearIcon,   // right
-            null         // bottom
+            searchIcon, null, clearIcon, null // Устанавливаем иконки слева и справа
         )
     }
 
     private fun showKeyboard() {
-        searchEditText.requestFocus()
+        searchEditText.requestFocus() // Фокусируемся на поле ввода
         searchEditText.postDelayed({
+            // Показываем клавиатуру с задержкой (для корректного отображения)
             inputMethodManager.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT)
         }, 100)
     }
 
     private fun hideKeyboard() {
+        // Скрываем клавиатуру
         inputMethodManager.hideSoftInputFromWindow(searchEditText.windowToken, 0)
     }
 
-    // Закрываем клавиатуру при нажатии назад
+    // Сохраняем текущий поисковый запрос при повороте экрана
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(SEARCH_QUERY_KEY, searchEditText.text.toString())
+    }
+
+    // Восстанавливаем поисковый запрос после поворота экрана
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        val savedQuery = savedInstanceState.getString(SEARCH_QUERY_KEY, "")
+        searchEditText.setText(savedQuery)
+        updateClearIcon(savedQuery)
+    }
+
+    // Скрываем клавиатуру при нажатии назад
     override fun onBackPressed() {
         hideKeyboard()
         super.onBackPressed()

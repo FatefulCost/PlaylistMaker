@@ -16,20 +16,26 @@ class TrackViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val dotTextView: TextView = itemView.findViewById(R.id.dotTextView)
 
     fun bind(track: Track) {
-        // Загружаем изображение с помощью Glide
-        Glide.with(itemView.context)
-            .load(track.artworkUrl100)
-            .placeholder(R.drawable.vector_placeholder)
-            .centerCrop()
-            .transform(RoundedCorners(10))
-            .into(artworkImageView)
+        // Загружаем обложку с помощью Glide
+        if (track.artworkUrl100.isNotEmpty()) {
+            Glide.with(itemView.context)
+                .load(track.artworkUrl100)
+                .placeholder(R.drawable.vector_placeholder)
+                .error(R.drawable.vector_placeholder)
+                .centerCrop()
+                .transform(RoundedCorners(10))
+                .into(artworkImageView)
+        } else {
+            // Если URL пустой, показываем плейсхолдер
+            artworkImageView.setImageResource(R.drawable.vector_placeholder)
+        }
 
         trackNameTextView.text = track.trackName
         artistNameTextView.text = track.artistName
-        trackTimeTextView.text = track.trackTime
+        trackTimeTextView.text = track.getFormattedTime()
 
         // Показываем точку только если есть и исполнитель и время
-        dotTextView.visibility = if (track.artistName.isNotEmpty() && track.trackTime.isNotEmpty()) {
+        dotTextView.visibility = if (track.artistName.isNotEmpty() && track.trackTimeMillis > 0) {
             View.VISIBLE
         } else {
             View.GONE

@@ -39,7 +39,8 @@
             android:layout_weight="1"
             android:background="@drawable/search_background"
             android:hint="@string/search"
-            android:imeOptions="actionSearch"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
             android:inputType="text"
             android:maxLines="1"
             android:drawableStart="@drawable/vector_lupa_search"
@@ -55,13 +56,27 @@
 
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/tracks_recycler_view"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="13dp"
-        android:paddingEnd="12dp"
-        android:clipToPadding="false"/>
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tracks_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="13dp"
+            android:paddingEnd="12dp"
+            android:clipToPadding="false"
+            android:visibility="gone"/>
+
+        <include
+            android:id="@+id/placeholder_layout"
+            layout="@layout/placeholder_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+    </FrameLayout>
 
 </LinearLayout>
