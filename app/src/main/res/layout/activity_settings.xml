@@ -22,6 +22,7 @@
 
 
     <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/themeSwitch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="16dp"

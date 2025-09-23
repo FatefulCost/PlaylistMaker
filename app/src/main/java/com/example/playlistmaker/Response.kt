@@ -8,6 +8,7 @@ data class ITunesSearchResponse(
 )
 
 data class TrackResponse(
+    @SerializedName("trackId") val trackId: Long,
     @SerializedName("trackName") val trackName: String,
     @SerializedName("artistName") val artistName: String,
     @SerializedName("trackTimeMillis") val trackTimeMillis: Long,
@@ -15,6 +16,7 @@ data class TrackResponse(
 ) {
     fun toTrack(): Track {
         return Track(
+            trackId = trackId,
             trackName = trackName,
             artistName = artistName,
             trackTimeMillis = trackTimeMillis,
