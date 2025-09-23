@@ -51,7 +51,8 @@
             android:textSize="11sp"
             android:textColor="@color/song_artist_name_text_color"
             android:maxLines="1"
-            android:ellipsize="end" />
+            android:ellipsize="end"
+            android:maxEms="19" />
 
         <!-- Иконка точки -->
         <TextView
