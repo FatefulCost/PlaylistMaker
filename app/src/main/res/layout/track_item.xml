@@ -33,13 +33,11 @@
         android:id="@+id/artistTimeContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="44dp"
+        android:paddingEnd="100dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        app:layout_constraintStart_toEndOf="@id/artworkImageView"
         app:layout_constraintTop_toBottomOf="@id/trackNameTextView"
-        app:layout_constraintEnd_toEndOf="@id/arrowImageView">
+        app:layout_constraintStart_toStartOf="@id/trackNameTextView">
 
         <!-- Имя исполнителя -->
         <TextView
@@ -52,7 +50,8 @@
             android:textColor="@color/song_artist_name_text_color"
             android:maxLines="1"
             android:ellipsize="end"
-            android:maxEms="19" />
+            android:layout_weight="1"
+            />
 
         <!-- Иконка точки -->
         <TextView
