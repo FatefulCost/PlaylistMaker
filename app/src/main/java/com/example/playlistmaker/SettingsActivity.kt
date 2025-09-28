@@ -9,11 +9,20 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class SettingsActivity : AppCompatActivity() {
+
+    private lateinit var themeSwitch: SwitchMaterial
+    private lateinit var themeManager: ThemeManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        themeManager = ThemeManager(this)
+        applySavedTheme()
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_settings)
@@ -23,31 +32,72 @@ class SettingsActivity : AppCompatActivity() {
             insets
         }
 
+        initViews()
+        setupToolbar()
+        setupThemeSwitch()
+        setupClickListeners()
+    }
+
+    private fun initViews() {
+        themeSwitch = findViewById(R.id.themeSwitch)
+    }
+
+    private fun setupToolbar() {
         val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-
-        // Включаем кнопку "Назад"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        // Обработчик нажатия на стрелку
         toolbar.setNavigationOnClickListener {
             finish()
         }
+    }
 
+    private fun setupThemeSwitch() {
+        // Устанавливаем текущее состояние переключателя
+        themeSwitch.isChecked = themeManager.isDarkTheme()
 
+        // Обработчик изменения темы
+        themeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            themeManager.saveTheme(isChecked)
+            applyTheme(isChecked)
+        }
+    }
+
+    private fun applySavedTheme() {
+        // Применяем сохраненную тему при создании активности
+        if (themeManager.isDarkTheme()) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
+    }
+
+    private fun applyTheme(isDarkTheme: Boolean) {
+        // Устанавливаем тему для всего приложения
+        if (isDarkTheme) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
+
+        // Перезагружаем активность для применения темы
+        recreate()
+    }
+
+    private fun setupClickListeners() {
         val shareText = findViewById<TextView>(R.id.shareAppText)
         shareText.setOnClickListener {
             shareApp()
         }
+
         val supportText = findViewById<TextView>(R.id.supportText)
         supportText.setOnClickListener {
             sendSupportEmail()
         }
+
         val termsText = findViewById<TextView>(R.id.termsText)
         termsText.setOnClickListener {
             openTermsAndConditions()
         }
-
     }
 
     private fun shareApp() {

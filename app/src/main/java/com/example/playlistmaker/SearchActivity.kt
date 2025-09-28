@@ -10,10 +10,12 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -22,8 +24,12 @@ import androidx.recyclerview.widget.RecyclerView
 
 class SearchActivity : AppCompatActivity() {
     // lateinit переменные для View элементов
+    private lateinit var themeManager: ThemeManager
     private lateinit var searchEditText: EditText
     private lateinit var tracksRecyclerView: RecyclerView
+    private lateinit var historyRecyclerView: RecyclerView
+    private lateinit var historyLayout: LinearLayout
+    private lateinit var clearHistoryButton: Button
     private lateinit var placeholderLayout: View
     private lateinit var placeholderIcon: ImageView
     private lateinit var placeholderText: TextView
@@ -33,12 +39,18 @@ class SearchActivity : AppCompatActivity() {
     // Используем ViewModel для управления состоянием
     private val viewModel: SearchViewModel by viewModels()
     private lateinit var tracksAdapter: TracksAdapter
+    private lateinit var historyAdapter: TracksAdapter
+    private lateinit var searchHistoryManager: SearchHistoryManager
 
     companion object {
         private const val SEARCH_QUERY_KEY = "search_query_key" // Ключ для сохранения состояния
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        themeManager = ThemeManager(this)
+        applySavedTheme()
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_search)
@@ -54,17 +66,35 @@ class SearchActivity : AppCompatActivity() {
         setupToolbar()       // Настройка тулбара
         setupSearchField()   // Настройка поля поиска
         setupRecyclerView()  // Настройка RecyclerView
+        setupHistory()       // Настройка истории
         setupObservers()     // Настройка наблюдения за ViewModel
+
+        // Показываем историю при запуске (если есть)
+        showSearchHistory()
     }
+
+    private fun applySavedTheme() {
+        if (themeManager.isDarkTheme()) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
+    }
+
 
     private fun initViews() {
         searchEditText = findViewById(R.id.search_edit_text)
         tracksRecyclerView = findViewById(R.id.tracks_recycler_view)
+        historyRecyclerView = findViewById(R.id.history_recycler_view)
+        historyLayout = findViewById(R.id.history_layout)
+        clearHistoryButton = findViewById(R.id.clear_history_button)
         placeholderLayout = findViewById(R.id.placeholder_layout)
         placeholderIcon = findViewById(R.id.placeholder_icon)
         placeholderText = findViewById(R.id.placeholder_text)
         retryButton = findViewById(R.id.retry_button)
         inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+
+        searchHistoryManager = SearchHistoryManager(this)
     }
 
     private fun setupToolbar() {
@@ -75,11 +105,33 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        tracksAdapter = TracksAdapter()
+        // Адаптер для результатов поиска
+        tracksAdapter = TracksAdapter { track ->
+            onTrackClicked(track)
+        }
+
         tracksRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@SearchActivity) // Вертикальный список
             adapter = tracksAdapter                                  // Наш адаптер
             setHasFixedSize(true)                                    // Оптимизация производительности
+        }
+
+        // Адаптер для истории поиска
+        historyAdapter = TracksAdapter { track ->
+            onTrackClicked(track)
+        }
+        historyRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@SearchActivity)
+            adapter = historyAdapter
+            setHasFixedSize(true)
+        }
+    }
+
+    private fun setupHistory() {
+        // Обработчик кнопки очистки истории
+        clearHistoryButton.setOnClickListener {
+            searchHistoryManager.clearSearchHistory()
+            showSearchHistory()
         }
     }
 
@@ -99,6 +151,27 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
+    private fun onTrackClicked(track: Track) {
+        // Добавляем трек в историю поиска
+        searchHistoryManager.addTrackToHistory(track)
+    }
+
+    private fun showSearchHistory() {
+        val history = searchHistoryManager.getSearchHistory()
+        if (history.isNotEmpty()) {
+            historyLayout.visibility = View.VISIBLE
+            tracksRecyclerView.visibility = View.GONE
+            placeholderLayout.visibility = View.GONE
+            historyAdapter.updateTracks(history)
+            clearHistoryButton.visibility = View.VISIBLE
+        } else {
+            historyLayout.visibility = View.GONE
+            tracksRecyclerView.visibility = View.GONE
+            placeholderLayout.visibility = View.GONE
+            clearHistoryButton.visibility = View.GONE
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun setupSearchField() {
         // Устанавливаем иконку поиска слева
@@ -112,6 +185,10 @@ class SearchActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 updateClearIcon(s) // Обновляем иконку очистки
+                // Если поле поиска пустое, показываем историю
+                if (s.isNullOrEmpty()) {
+                    showSearchHistory()
+                }
             }
             override fun afterTextChanged(s: Editable?) {}
         })
@@ -155,6 +232,8 @@ class SearchActivity : AppCompatActivity() {
     private fun performSearch() {
         val query = searchEditText.text.toString().trim()
         if (query.isNotBlank()) {
+            // Скрываем историю при поиске
+            historyLayout.visibility = View.GONE
             viewModel.searchTracks(query) // Запускаем поиск через ViewModel
         }
     }
@@ -165,10 +244,12 @@ class SearchActivity : AppCompatActivity() {
         tracksRecyclerView.visibility = View.GONE    // Скрываем список
         placeholderLayout.visibility = View.GONE     // Скрываем плейсхолдер
         updateClearIcon("")               // Обновляем иконку
+        showSearchHistory() // Показываем историю после очистки
     }
 
     private fun showLoading() {
         tracksRecyclerView.visibility = View.GONE
+        historyLayout.visibility = View.GONE
         placeholderLayout.visibility = View.VISIBLE
         // Вместо иконки загрузки, используем только текст
         placeholderIcon.visibility = View.GONE
@@ -178,12 +259,14 @@ class SearchActivity : AppCompatActivity() {
 
     private fun showResults(tracks: List<Track>) {
         tracksRecyclerView.visibility = View.VISIBLE
+        historyLayout.visibility = View.GONE
         placeholderLayout.visibility = View.GONE
         tracksAdapter.updateTracks(tracks)
     }
 
     private fun showEmptyResults() {
         tracksRecyclerView.visibility = View.GONE
+        historyLayout.visibility = View.GONE
         placeholderLayout.visibility = View.VISIBLE
         placeholderIcon.visibility = View.VISIBLE // Показываем иконку для "ничего не найдено"
         placeholderIcon.setImageResource(R.drawable.nothing_found)
@@ -193,6 +276,7 @@ class SearchActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         tracksRecyclerView.visibility = View.GONE
+        historyLayout.visibility = View.GONE
         placeholderLayout.visibility = View.VISIBLE
         placeholderIcon.visibility = View.VISIBLE // Показываем иконку для ошибки
         placeholderIcon.setImageResource(R.drawable.no_network)

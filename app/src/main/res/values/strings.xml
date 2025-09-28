@@ -27,5 +27,8 @@
     <string name="search_loading" translatable="false">Загрузка...</string>
     <string name="search_placeholder" translatable="false">Пример текста</string>
     <string name="retry" translatable="false">Обновить</string>
+
+    <string name="search_history" translatable="false">Вы искали</string>
+    <string name="clear_history" translatable="false">Очистить историю</string>
 </resources>
 
