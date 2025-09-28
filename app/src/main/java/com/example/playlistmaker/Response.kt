@@ -12,7 +12,11 @@ data class TrackResponse(
     @SerializedName("trackName") val trackName: String,
     @SerializedName("artistName") val artistName: String,
     @SerializedName("trackTimeMillis") val trackTimeMillis: Long,
-    @SerializedName("artworkUrl100") val artworkUrl100: String
+    @SerializedName("artworkUrl100") val artworkUrl100: String,
+    @SerializedName("collectionName") val collectionName: String?,
+    @SerializedName("releaseDate") val releaseDate: String?,
+    @SerializedName("primaryGenreName") val primaryGenreName: String?,
+    @SerializedName("country") val country: String?
 ) {
     fun toTrack(): Track {
         return Track(
@@ -20,7 +24,11 @@ data class TrackResponse(
             trackName = trackName,
             artistName = artistName,
             trackTimeMillis = trackTimeMillis,
-            artworkUrl100 = artworkUrl100
+            artworkUrl100 = artworkUrl100,
+            collectionName = collectionName,
+            releaseDate = releaseDate,
+            primaryGenreName = primaryGenreName,
+            country = country
         )
     }
 }
