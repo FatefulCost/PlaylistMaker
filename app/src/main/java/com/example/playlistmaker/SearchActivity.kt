@@ -1,6 +1,7 @@
 package com.example.playlistmaker
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -154,6 +155,11 @@ class SearchActivity : AppCompatActivity() {
     private fun onTrackClicked(track: Track) {
         // Добавляем трек в историю поиска
         searchHistoryManager.addTrackToHistory(track)
+
+        // Переход на экран плеера
+        val intent = Intent(this, PlayerActivity::class.java)
+        intent.putExtra("track", track)
+        startActivity(intent)
     }
 
     private fun showSearchHistory() {

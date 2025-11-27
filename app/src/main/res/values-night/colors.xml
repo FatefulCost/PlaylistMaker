@@ -20,4 +20,5 @@
     <color name="button_network_text_color">#1A1B22</color>
     <color name="button_history_text_color">#1A1B22</color>
     <color name="history_text_color">#FFFFFF</color>
+    <color name="song_details_color">#AEAFB4</color>
 </resources>

@@ -30,5 +30,16 @@
 
     <string name="search_history" translatable="false">Вы искали</string>
     <string name="clear_history" translatable="false">Очистить историю</string>
+
+    <string name="name_of_track" translatable="false">Название трека</string>
+    <string name="name_of_singer" translatable="false">Имя исполнителя</string>
+    <string name="duration" translatable="false">Длительность</string>
+    <string name="collection" translatable="false">Альбом</string>
+    <string name="name_of_collection" translatable="false">Название альбома</string>
+    <string name="year" translatable="false">Год</string>
+    <string name="genre" translatable="false">Жанр</string>
+    <string name="name_of_genre" translatable="false">Название жанра</string>
+    <string name="country" translatable="false">Страна</string>
+    <string name="name_of_country" translatable="false">Название страны</string>
 </resources>
 
