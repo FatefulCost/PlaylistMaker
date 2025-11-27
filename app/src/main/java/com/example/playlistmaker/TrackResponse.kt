@@ -16,7 +16,8 @@ data class TrackResponse(
     @SerializedName("collectionName") val collectionName: String?,
     @SerializedName("releaseDate") val releaseDate: String?,
     @SerializedName("primaryGenreName") val primaryGenreName: String?,
-    @SerializedName("country") val country: String?
+    @SerializedName("country") val country: String?,
+    @SerializedName("previewUrl") val previewUrl: String?
 ) {
     fun toTrack(): Track {
         return Track(
@@ -28,7 +29,8 @@ data class TrackResponse(
             collectionName = collectionName,
             releaseDate = releaseDate,
             primaryGenreName = primaryGenreName,
-            country = country
+            country = country,
+            previewUrl = previewUrl
         )
     }
 }

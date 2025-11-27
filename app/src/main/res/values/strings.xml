@@ -41,5 +41,8 @@
     <string name="name_of_genre" translatable="false">Название жанра</string>
     <string name="country" translatable="false">Страна</string>
     <string name="name_of_country" translatable="false">Название страны</string>
+
+    <string name="play" translatable="false">Воспроизвести</string>
+    <string name="pause" translatable="false">Пауза</string>
 </resources>
 
