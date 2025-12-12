@@ -1,11 +1,15 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.playlistmaker.domain.model.Track
+import com.example.playlistmaker.domain.repository.HistoryRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-class SearchHistoryManager(private val context: Context) {
+class HistoryRepositoryImpl(
+    private val context: Context
+) : HistoryRepository {
 
     companion object {
         private const val PREFS_NAME = "search_history_prefs"
@@ -17,27 +21,19 @@ class SearchHistoryManager(private val context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val gson = Gson()
 
-    // Добавить трек в историю
-    fun addTrackToHistory(track: Track) {
+    override fun addTrackToHistory(track: Track) {
         val history = getSearchHistory().toMutableList()
-
-        // Удаляем трек если он уже есть в истории (по trackId)
         history.removeAll { it.trackId == track.trackId }
-
-        // Добавляем трек в начало списка
         history.add(0, track)
 
-        // Ограничиваем размер истории
         if (history.size > MAX_HISTORY_SIZE) {
             history.subList(MAX_HISTORY_SIZE, history.size).clear()
         }
 
-        // Сохраняем обновленную историю
         saveSearchHistory(history)
     }
 
-    // Получить историю поиска
-    fun getSearchHistory(): List<Track> {
+    override fun getSearchHistory(): List<Track> {
         val historyJson = sharedPreferences.getString(KEY_HISTORY, null)
         return if (historyJson != null) {
             val type = object : TypeToken<List<Track>>() {}.type
@@ -47,17 +43,14 @@ class SearchHistoryManager(private val context: Context) {
         }
     }
 
-    // Очистить историю поиска
-    fun clearSearchHistory() {
+    override fun clearSearchHistory() {
         sharedPreferences.edit().remove(KEY_HISTORY).apply()
     }
 
-    // Проверить, пустая ли история
-    fun isHistoryEmpty(): Boolean {
+    override fun isHistoryEmpty(): Boolean {
         return getSearchHistory().isEmpty()
     }
 
-    // Сохранить историю в SharedPreferences
     private fun saveSearchHistory(history: List<Track>) {
         val historyJson = gson.toJson(history)
         sharedPreferences.edit().putString(KEY_HISTORY, historyJson).apply()

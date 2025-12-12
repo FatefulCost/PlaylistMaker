@@ -1,4 +1,4 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.presentation.activity
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -25,9 +25,17 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.playlistmaker.R
+import com.example.playlistmaker.data.api.RetrofitClient
+import com.example.playlistmaker.domain.model.Track
+import com.example.playlistmaker.presentation.adapter.TracksAdapter
+import com.example.playlistmaker.presentation.creator.InteractorCreator
+import com.example.playlistmaker.presentation.util.ThemeManager
+import com.example.playlistmaker.presentation.viewmodel.SearchStateUi
+import com.example.playlistmaker.presentation.viewmodel.SearchViewModel
+import com.example.playlistmaker.presentation.viewmodel.SearchViewModelFactory
 
 class SearchActivity : AppCompatActivity() {
-    // lateinit переменные для View элементов
     private lateinit var themeManager: ThemeManager
     private lateinit var searchEditText: EditText
     private lateinit var tracksRecyclerView: RecyclerView
@@ -38,30 +46,31 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var placeholderIcon: ImageView
     private lateinit var placeholderText: TextView
     private lateinit var retryButton: Button
-    private lateinit var progressBar: ProgressBar // Добавляем ProgressBar
+    private lateinit var progressBar: ProgressBar
     private lateinit var inputMethodManager: InputMethodManager
 
-    // ViewModel для управления состоянием
-    private val viewModel: SearchViewModel by viewModels()
     private lateinit var tracksAdapter: TracksAdapter
     private lateinit var historyAdapter: TracksAdapter
-    private lateinit var searchHistoryManager: SearchHistoryManager
+    private lateinit var historyInteractor: com.example.playlistmaker.domain.interactor.HistoryInteractor
 
-    // Debounce переменные
     private val handler = Handler(Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
-    private val DEBOUNCE_DELAY = 2000L // 2 секунды
+    private val DEBOUNCE_DELAY = 2000L
 
-    // Debounce для кликов по трекам
     private var lastClickTime = 0L
-    private val CLICK_DEBOUNCE_DELAY = 1000L // 1 секунда
+    private val CLICK_DEBOUNCE_DELAY = 1000L
+
+    private val viewModel: SearchViewModel by viewModels {
+        SearchViewModelFactory(
+            InteractorCreator.createSearchInteractor(RetrofitClient.iTunesApi)
+        )
+    }
 
     companion object {
-        private const val SEARCH_QUERY_KEY = "search_query_key" // Ключ для сохранения состояния
+        private const val SEARCH_QUERY_KEY = "search_query_key"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         themeManager = ThemeManager(this)
         applySavedTheme()
 
@@ -69,21 +78,18 @@ class SearchActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_search)
 
-        // Обработка системных отступов (для notch экранов)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.search_activity)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        initViews()          // Инициализация View элементов
-        setupToolbar()       // Настройка тулбара
-        setupSearchField()   // Настройка поля поиска
-        setupRecyclerView()  // Настройка RecyclerView
-        setupHistory()       // Настройка истории
-        setupObservers()     // Настройка наблюдения за ViewModel
-
-        // Показываем историю при запуске (если есть)
+        initViews()
+        setupToolbar()
+        setupSearchField()
+        setupRecyclerView()
+        setupHistory()
+        setupObservers()
         showSearchHistory()
     }
 
@@ -105,32 +111,30 @@ class SearchActivity : AppCompatActivity() {
         placeholderIcon = findViewById(R.id.placeholder_icon)
         placeholderText = findViewById(R.id.placeholder_text)
         retryButton = findViewById(R.id.retry_button)
-        progressBar = findViewById(R.id.progressBar) // Инициализируем ProgressBar
+        progressBar = findViewById(R.id.progressBar)
         inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
-        searchHistoryManager = SearchHistoryManager(this)
+        historyInteractor = InteractorCreator.createHistoryInteractor(this)
     }
 
     private fun setupToolbar() {
         val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar_search)
         setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Показываем кнопку назад
-        toolbar.setNavigationOnClickListener { finish() } // Закрываем Activity при нажатии
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        toolbar.setNavigationOnClickListener { finish() }
     }
 
     private fun setupRecyclerView() {
-        // Адаптер для результатов поиска
         tracksAdapter = TracksAdapter { track ->
             onTrackClicked(track)
         }
 
         tracksRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@SearchActivity) // Вертикальный список
-            adapter = tracksAdapter                                  // Наш адаптер
-            setHasFixedSize(true)                                    // Оптимизация производительности
+            layoutManager = LinearLayoutManager(this@SearchActivity)
+            adapter = tracksAdapter
+            setHasFixedSize(true)
         }
 
-        // Адаптер для истории поиска
         historyAdapter = TracksAdapter { track ->
             onTrackClicked(track)
         }
@@ -142,9 +146,8 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupHistory() {
-        // Обработчик кнопки очистки истории
         clearHistoryButton.setOnClickListener {
-            searchHistoryManager.clearSearchHistory()
+            historyInteractor.clearSearchHistory()
             showSearchHistory()
         }
     }
@@ -152,75 +155,67 @@ class SearchActivity : AppCompatActivity() {
     private fun setupObservers() {
         viewModel.searchState.observe(this) { state ->
             when (state) {
-                is SearchState.Loading -> showLoading() // Обрабатываем состояние загрузки
-                is SearchState.Success -> showResults(state.tracks)
-                is SearchState.Error -> showError(state.message)
-                is SearchState.Empty -> showEmptyResults()
+                is SearchStateUi.Loading -> showLoading()
+                is SearchStateUi.Success -> showResults(state.tracks)
+                is SearchStateUi.Error -> showError(state.message)
+                SearchStateUi.Empty -> showEmptyResults()
             }
         }
     }
 
     private fun onTrackClicked(track: Track) {
-        // Debounce для кликов - предотвращаем множественные нажатия
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastClickTime < CLICK_DEBOUNCE_DELAY) {
             return
         }
         lastClickTime = currentTime
 
-        // Добавляем трек в историю поиска
-        searchHistoryManager.addTrackToHistory(track)
+        historyInteractor.addTrackToHistory(track)
 
-        // Переход на экран плеера
         val intent = Intent(this, PlayerActivity::class.java)
         intent.putExtra("track", track)
         startActivity(intent)
     }
 
     private fun showSearchHistory() {
-        val history = searchHistoryManager.getSearchHistory()
+        val history = historyInteractor.getSearchHistory()
         if (history.isNotEmpty()) {
             historyLayout.visibility = View.VISIBLE
             tracksRecyclerView.visibility = View.GONE
             placeholderLayout.visibility = View.GONE
-            progressBar.visibility = View.GONE // Скрываем ProgressBar
+            progressBar.visibility = View.GONE
             historyAdapter.updateTracks(history)
             clearHistoryButton.visibility = View.VISIBLE
         } else {
             historyLayout.visibility = View.GONE
             tracksRecyclerView.visibility = View.GONE
             placeholderLayout.visibility = View.GONE
-            progressBar.visibility = View.GONE // Скрываем ProgressBar
+            progressBar.visibility = View.GONE
             clearHistoryButton.visibility = View.GONE
         }
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupSearchField() {
-        // Устанавливаем иконку поиска слева
         val searchIcon = ContextCompat.getDrawable(this, R.drawable.vector_lupa_search)
         searchEditText.setCompoundDrawablesWithIntrinsicBounds(
             searchIcon, null, null, null
         )
 
-        // Слушатель изменений текста для обновления иконки очистки + debounce
         searchEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                updateClearIcon(s) // Обновляем иконку очистки
+                updateClearIcon(s)
 
-                // Отменяем предыдущий debounce запрос
                 searchRunnable?.let { handler.removeCallbacks(it) }
 
-                // Если поле не пустое, запускаем новый запрос с задержкой
                 if (!s.isNullOrEmpty() && s.toString().isNotBlank()) {
                     searchRunnable = Runnable {
                         performDebouncedSearch(s.toString())
                     }
                     handler.postDelayed(searchRunnable!!, DEBOUNCE_DELAY)
                 } else {
-                    // Если поле пустое, показываем историю
                     showSearchHistory()
                 }
             }
@@ -228,10 +223,8 @@ class SearchActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // Обработка нажатия кнопки Done на клавиатуре (выполняется немедленно)
         searchEditText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
-                // Отменяем debounce запрос и выполняем немедленно
                 searchRunnable?.let { handler.removeCallbacks(it) }
                 performSearch()
                 hideKeyboard()
@@ -240,24 +233,20 @@ class SearchActivity : AppCompatActivity() {
             false
         }
 
-        // Показ клавиатуры при касании поля
         searchEditText.setOnClickListener { showKeyboard() }
 
-        // Обработка касания иконки очистки (справа)
         searchEditText.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 val editText = v as EditText
-                val drawableRight = editText.compoundDrawables[2] // Правая иконка
+                val drawableRight = editText.compoundDrawables[2]
 
                 if (drawableRight != null) {
-                    // Вычисляем область иконки очистки
                     val clearIconStart = editText.width -
                             editText.paddingEnd -
                             drawableRight.intrinsicWidth
 
-                    // Проверяем, было ли касание в области иконки
                     if (event.rawX >= clearIconStart) {
-                        clearSearch() // Очищаем поиск
+                        clearSearch()
                         return@setOnTouchListener true
                     }
                 }
@@ -269,7 +258,6 @@ class SearchActivity : AppCompatActivity() {
     private fun performDebouncedSearch(query: String) {
         val trimmedQuery = query.trim()
         if (trimmedQuery.isNotBlank()) {
-            // Скрываем историю при поиске
             historyLayout.visibility = View.GONE
             viewModel.searchTracks(trimmedQuery)
         }
@@ -278,34 +266,32 @@ class SearchActivity : AppCompatActivity() {
     private fun performSearch() {
         val query = searchEditText.text.toString().trim()
         if (query.isNotBlank()) {
-            // Скрываем историю при поиске
             historyLayout.visibility = View.GONE
-            viewModel.searchTracks(query) // Запускаем поиск через ViewModel
+            viewModel.searchTracks(query)
         }
     }
 
     private fun clearSearch() {
-        searchEditText.setText("")        // Очищаем текст
-        hideKeyboard()                    // Скрываем клавиатуру
-        tracksRecyclerView.visibility = View.GONE    // Скрываем список
-        placeholderLayout.visibility = View.GONE     // Скрываем плейсхолдер
-        progressBar.visibility = View.GONE           // Скрываем ProgressBar
-        updateClearIcon("")               // Обновляем иконку
-        showSearchHistory() // Показываем историю после очистки
+        searchEditText.setText("")
+        hideKeyboard()
+        tracksRecyclerView.visibility = View.GONE
+        placeholderLayout.visibility = View.GONE
+        progressBar.visibility = View.GONE
+        updateClearIcon("")
+        showSearchHistory()
 
-        // Отменяем pending debounce запросы
         searchRunnable?.let { handler.removeCallbacks(it) }
     }
 
     private fun showLoading() {
-        progressBar.visibility = View.VISIBLE // Показываем ProgressBar
+        progressBar.visibility = View.VISIBLE
         tracksRecyclerView.visibility = View.GONE
         historyLayout.visibility = View.GONE
         placeholderLayout.visibility = View.GONE
     }
 
     private fun showResults(tracks: List<Track>) {
-        progressBar.visibility = View.GONE // Скрываем ProgressBar
+        progressBar.visibility = View.GONE
         tracksRecyclerView.visibility = View.VISIBLE
         historyLayout.visibility = View.GONE
         placeholderLayout.visibility = View.GONE
@@ -313,22 +299,22 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun showEmptyResults() {
-        progressBar.visibility = View.GONE // Скрываем ProgressBar
+        progressBar.visibility = View.GONE
         tracksRecyclerView.visibility = View.GONE
         historyLayout.visibility = View.GONE
         placeholderLayout.visibility = View.VISIBLE
-        placeholderIcon.visibility = View.VISIBLE // Показываем иконку для "ничего не найдено"
+        placeholderIcon.visibility = View.VISIBLE
         placeholderIcon.setImageResource(R.drawable.nothing_found)
         placeholderText.text = getString(R.string.search_empty)
         retryButton.visibility = View.GONE
     }
 
     private fun showError(message: String) {
-        progressBar.visibility = View.GONE // Скрываем ProgressBar
+        progressBar.visibility = View.GONE
         tracksRecyclerView.visibility = View.GONE
         historyLayout.visibility = View.GONE
         placeholderLayout.visibility = View.VISIBLE
-        placeholderIcon.visibility = View.VISIBLE // Показываем иконку для ошибки
+        placeholderIcon.visibility = View.VISIBLE
         placeholderIcon.setImageResource(R.drawable.no_network)
         placeholderText.text = message
         retryButton.visibility = View.VISIBLE
@@ -336,7 +322,6 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun updateClearIcon(text: CharSequence?) {
-        // Показываем иконку очистки только если есть текст
         val clearIcon = if (text.isNullOrEmpty()) {
             null
         } else {
@@ -345,30 +330,26 @@ class SearchActivity : AppCompatActivity() {
 
         val searchIcon = ContextCompat.getDrawable(this, R.drawable.vector_lupa_search)
         searchEditText.setCompoundDrawablesWithIntrinsicBounds(
-            searchIcon, null, clearIcon, null // Устанавливаем иконки слева и справа
+            searchIcon, null, clearIcon, null
         )
     }
 
     private fun showKeyboard() {
-        searchEditText.requestFocus() // Фокусируемся на поле ввода
+        searchEditText.requestFocus()
         searchEditText.postDelayed({
-            // Показываем клавиатуру с задержкой (для корректного отображения)
             inputMethodManager.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT)
         }, 100)
     }
 
     private fun hideKeyboard() {
-        // Скрываем клавиатуру
         inputMethodManager.hideSoftInputFromWindow(searchEditText.windowToken, 0)
     }
 
-    // Сохраняем текущий поисковый запрос при повороте экрана
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(SEARCH_QUERY_KEY, searchEditText.text.toString())
     }
 
-    // Восстанавливаем поисковый запрос после поворота экрана
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         val savedQuery = savedInstanceState.getString(SEARCH_QUERY_KEY, "")
@@ -376,7 +357,6 @@ class SearchActivity : AppCompatActivity() {
         updateClearIcon(savedQuery)
     }
 
-    // Скрываем клавиатуру при нажатии назад
     override fun onBackPressed() {
         hideKeyboard()
         super.onBackPressed()
@@ -384,7 +364,6 @@ class SearchActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Очищаем handler чтобы избежать утечек памяти
         handler.removeCallbacksAndMessages(null)
     }
 }
