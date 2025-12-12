@@ -1,6 +1,9 @@
 package com.example.playlistmaker
 
+import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -30,6 +33,16 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var genreValueTextView: TextView
     private lateinit var countryLabelTextView: TextView
     private lateinit var countryValueTextView: TextView
+    private lateinit var progressTextView: TextView
+
+    // MediaPlayer и Handler для управления воспроизведением
+    private var mediaPlayer: MediaPlayer? = null
+    private var playbackPosition = 0
+    private var isPlaying = false // Простая переменная вместо ViewModel
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var updateProgressRunnable: Runnable
+
+    private var currentTrack: Track? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +57,17 @@ class PlayerActivity : AppCompatActivity() {
 
         initViews()
         setupBackButton()
+        setupPlayButton()
         displayTrackInfo()
+        setupMediaPlayer()
+
+        // Инициализируем Runnable для обновления прогресса
+        updateProgressRunnable = object : Runnable {
+            override fun run() {
+                updateProgress()
+                handler.postDelayed(this, 300)
+            }
+        }
     }
 
     private fun initViews() {
@@ -57,6 +80,7 @@ class PlayerActivity : AppCompatActivity() {
         playButton = findViewById(R.id.playButton)
         addToPlaylistButton = findViewById(R.id.addToPlaylistButton)
         addToFavoritesButton = findViewById(R.id.addToFavoritesButton)
+        progressTextView = findViewById(R.id.progressTextView)
 
         // Инициализация элементов информации
         albumLabelTextView = findViewById(R.id.albumLabelTextView)
@@ -75,41 +99,44 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupPlayButton() {
+        playButton.setOnClickListener {
+            togglePlayback()
+        }
+    }
+
     private fun displayTrackInfo() {
-        val track = intent.getSerializableExtra("track") as? Track
-        track?.let {
-            // Загружаем обложку высокого качества
-            loadArtwork(it.getHighResArtworkUrl())
+        currentTrack = intent.getSerializableExtra("track") as? Track
+        currentTrack?.let { track ->
+            loadArtwork(track.getHighResArtworkUrl())
+            trackNameTextView.text = track.trackName
+            artistNameTextView.text = track.artistName
 
-            // Основная информация
-            trackNameTextView.text = it.trackName
-            artistNameTextView.text = it.artistName
-
-            // Длительность трека (дублируется в двух местах)
-            val duration = it.getFormattedTime()
+            val duration = track.getFormattedTime()
             trackDurationTextView.text = duration
             durationValueTextView.text = duration
+            progressTextView.text = "00:00"
 
-            // Дополнительная информация (показываем только если есть)
-            it.collectionName?.let { collectionName ->
+            // Дополнительная информация
+            track.collectionName?.let { collectionName ->
                 albumValueTextView.text = collectionName
                 albumLabelTextView.visibility = TextView.VISIBLE
                 albumValueTextView.visibility = TextView.VISIBLE
             }
 
-            it.getReleaseYear()?.let { releaseYear ->
+            track.getReleaseYear()?.let { releaseYear ->
                 yearValueTextView.text = releaseYear
                 yearLabelTextView.visibility = TextView.VISIBLE
                 yearValueTextView.visibility = TextView.VISIBLE
             }
 
-            it.primaryGenreName?.let { genre ->
+            track.primaryGenreName?.let { genre ->
                 genreValueTextView.text = genre
                 genreLabelTextView.visibility = TextView.VISIBLE
                 genreValueTextView.visibility = TextView.VISIBLE
             }
 
-            it.country?.let { country ->
+            track.country?.let { country ->
                 countryValueTextView.text = country
                 countryLabelTextView.visibility = TextView.VISIBLE
                 countryValueTextView.visibility = TextView.VISIBLE
@@ -117,6 +144,94 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupMediaPlayer() {
+        mediaPlayer = MediaPlayer().apply {
+            setOnCompletionListener {
+                // Когда трек заканчивается
+                playbackPosition = 0
+                handler.removeCallbacks(updateProgressRunnable)
+                progressTextView.text = "00:00"
+                this@PlayerActivity.isPlaying = false
+                updatePlayButton()
+            }
+        }
+    }
+
+    private fun togglePlayback() {
+        if (isPlaying) {
+            pausePlayback()
+        } else {
+            startPlayback()
+        }
+    }
+
+    private fun startPlayback() {
+        val track = currentTrack
+        val previewUrl = track?.previewUrl
+
+        if (previewUrl.isNullOrEmpty()) {
+            return
+        }
+
+        try {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.pause()
+            }
+
+            mediaPlayer?.reset()
+            mediaPlayer?.setDataSource(previewUrl)
+            mediaPlayer?.prepareAsync()
+
+            mediaPlayer?.setOnPreparedListener {
+                it.seekTo(playbackPosition)
+                it.start()
+                isPlaying = true
+                updatePlayButton()
+                handler.post(updateProgressRunnable)
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun pausePlayback() {
+        mediaPlayer?.pause()
+        playbackPosition = mediaPlayer?.currentPosition ?: 0
+        isPlaying = false
+        updatePlayButton()
+        handler.removeCallbacks(updateProgressRunnable)
+    }
+
+    private fun stopPlayback() {
+        mediaPlayer?.stop()
+        playbackPosition = 0
+        isPlaying = false
+        updatePlayButton()
+        handler.removeCallbacks(updateProgressRunnable)
+        progressTextView.text = "00:00"
+    }
+
+    private fun updateProgress() {
+        mediaPlayer?.let { player ->
+            if (player.isPlaying) {
+                val currentPosition = player.currentPosition
+                val minutes = currentPosition / 60000
+                val seconds = (currentPosition % 60000) / 1000
+                progressTextView.text = String.format("%02d:%02d", minutes, seconds)
+            }
+        }
+    }
+
+    private fun updatePlayButton() {
+        if (isPlaying) {
+            playButton.setImageResource(R.drawable.pause_button)
+            playButton.contentDescription = getString(R.string.pause)
+        } else {
+            playButton.setImageResource(R.drawable.play_button)
+            playButton.contentDescription = getString(R.string.play)
+        }
+    }
 
     private fun loadArtwork(artworkUrl: String) {
         if (artworkUrl.isNotEmpty()) {
@@ -130,5 +245,26 @@ class PlayerActivity : AppCompatActivity() {
         } else {
             artworkImageView.setImageResource(R.drawable.vector_placeholder)
         }
+    }
+
+    override fun onBackPressed() {
+        stopPlayback()
+        super.onBackPressed()
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // При сворачивании приложения ставим на паузу
+        if (isPlaying) {
+            pausePlayback()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(updateProgressRunnable)
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 }

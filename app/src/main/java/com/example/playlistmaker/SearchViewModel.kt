@@ -9,6 +9,7 @@ import retrofit2.HttpException
 import java.io.IOException
 
 sealed class SearchState {
+    object Loading : SearchState()
     data class Success(val tracks: List<Track>) : SearchState()
     data class Error(val message: String) : SearchState()
     object Empty : SearchState()
@@ -27,7 +28,7 @@ class SearchViewModel : ViewModel() {
         }
 
         lastSearchQuery = query
-        _searchState.value = SearchState.Success(emptyList())
+        _searchState.value = SearchState.Loading
 
         viewModelScope.launch {
             try {
