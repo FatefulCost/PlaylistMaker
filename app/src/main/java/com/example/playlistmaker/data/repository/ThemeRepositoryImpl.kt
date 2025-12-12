@@ -1,9 +1,12 @@
-package com.example.playlistmaker.presentation.util
+package com.example.playlistmaker.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.playlistmaker.domain.repository.ThemeRepository
 
-class ThemeManager(private val context: Context) {
+class ThemeRepositoryImpl(
+    private val context: Context
+) : ThemeRepository {
 
     companion object {
         private const val PREFS_NAME = "theme_prefs"
@@ -13,11 +16,11 @@ class ThemeManager(private val context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun saveTheme(isDarkTheme: Boolean) {
+    override fun saveTheme(isDarkTheme: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_IS_DARK_THEME, isDarkTheme).apply()
     }
 
-    fun isDarkTheme(): Boolean {
+    override fun isDarkTheme(): Boolean {
         return sharedPreferences.getBoolean(KEY_IS_DARK_THEME, false)
     }
 }

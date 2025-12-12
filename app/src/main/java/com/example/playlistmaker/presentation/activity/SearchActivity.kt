@@ -30,13 +30,12 @@ import com.example.playlistmaker.data.api.RetrofitClient
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.presentation.adapter.TracksAdapter
 import com.example.playlistmaker.presentation.creator.InteractorCreator
-import com.example.playlistmaker.presentation.util.ThemeManager
 import com.example.playlistmaker.presentation.viewmodel.SearchStateUi
 import com.example.playlistmaker.presentation.viewmodel.SearchViewModel
 import com.example.playlistmaker.presentation.viewmodel.SearchViewModelFactory
 
 class SearchActivity : AppCompatActivity() {
-    private lateinit var themeManager: ThemeManager
+    private lateinit var themeInteractor: com.example.playlistmaker.domain.interactor.ThemeInteractor
     private lateinit var searchEditText: EditText
     private lateinit var tracksRecyclerView: RecyclerView
     private lateinit var historyRecyclerView: RecyclerView
@@ -71,7 +70,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        themeManager = ThemeManager(this)
+        themeInteractor = InteractorCreator.createThemeInteractor(this)
         applySavedTheme()
 
         super.onCreate(savedInstanceState)
@@ -94,12 +93,13 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun applySavedTheme() {
-        if (themeManager.isDarkTheme()) {
+        if (themeInteractor.isDarkTheme()) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
     }
+
 
     private fun initViews() {
         searchEditText = findViewById(R.id.search_edit_text)
