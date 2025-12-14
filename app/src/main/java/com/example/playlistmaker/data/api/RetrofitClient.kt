@@ -1,5 +1,6 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.data.api
 
+import com.example.playlistmaker.data.api.service.ITunesApiService
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

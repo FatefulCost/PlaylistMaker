@@ -1,4 +1,4 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.presentation.activity
 
 import android.content.Intent
 import android.net.Uri
@@ -12,20 +12,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.playlistmaker.R
+import com.example.playlistmaker.domain.interactor.ThemeInteractor
+import com.example.playlistmaker.presentation.creator.InteractorCreator
 import com.google.android.material.switchmaterial.SwitchMaterial
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var themeSwitch: SwitchMaterial
-    private lateinit var themeManager: ThemeManager
+    private lateinit var themeInteractor: ThemeInteractor
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        themeManager = ThemeManager(this)
+        themeInteractor = InteractorCreator.createThemeInteractor(this)
+
         applySavedTheme()
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_settings)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings_activity)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -52,19 +57,16 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupThemeSwitch() {
-        // Устанавливаем текущее состояние переключателя
-        themeSwitch.isChecked = themeManager.isDarkTheme()
+        themeSwitch.isChecked = themeInteractor.isDarkTheme()
 
-        // Обработчик изменения темы
         themeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            themeManager.saveTheme(isChecked)
+            themeInteractor.saveTheme(isChecked)
             applyTheme(isChecked)
         }
     }
 
     private fun applySavedTheme() {
-        // Применяем сохраненную тему при создании активности
-        if (themeManager.isDarkTheme()) {
+        if (themeInteractor.isDarkTheme()) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -72,14 +74,12 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun applyTheme(isDarkTheme: Boolean) {
-        // Устанавливаем тему для всего приложения
         if (isDarkTheme) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        // Перезагружаем активность для применения темы
         recreate()
     }
 
@@ -101,9 +101,9 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun shareApp() {
-            val shareMessage = getString(R.string.share_message)
-            val shareMessageExtra = getString(R.string.share_message_extra_subject)
-            val shareMessageIntent = getString(R.string.share_message_extra_intent)
+        val shareMessage = getString(R.string.share_message)
+        val shareMessageExtra = getString(R.string.share_message_extra_subject)
+        val shareMessageIntent = getString(R.string.share_message_extra_intent)
 
         val shareIntent = Intent(Intent.ACTION_SEND)
         shareIntent.type = "text/plain"
@@ -156,6 +156,4 @@ class SettingsActivity : AppCompatActivity() {
             ).show()
         }
     }
-
-
 }
