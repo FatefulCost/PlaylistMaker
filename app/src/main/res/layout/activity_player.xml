@@ -106,7 +106,7 @@
             android:layout_marginTop="8dp"
             android:text="00:00"
             android:textColor="@color/time_progress"
-            android:textSize="14sp"
+            android:textSize="11sp"
             android:fontFamily="@font/ys_display_regular"
             app:layout_constraintEnd_toEndOf="@id/playButton"
             app:layout_constraintStart_toStartOf="@id/playButton"
