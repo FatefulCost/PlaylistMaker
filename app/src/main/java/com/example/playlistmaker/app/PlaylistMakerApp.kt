@@ -1,6 +1,7 @@
 package com.example.playlistmaker.app
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.playlistmaker.app.di.appModule
 import com.example.playlistmaker.app.di.featureModule
 import com.example.playlistmaker.core.theme.ThemeManager
@@ -24,6 +25,11 @@ class PlaylistMakerApp : Application() {
     }
 
     fun applyTheme() {
-        themeManager.applySavedTheme()
+        val isDarkTheme = themeManager.isDarkTheme()
+        if (isDarkTheme) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
     }
 }

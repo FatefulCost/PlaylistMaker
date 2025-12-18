@@ -3,10 +3,10 @@ package com.example.playlistmaker.feature.settings.ui.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.playlistmaker.core.theme.ThemeManager
+import com.example.playlistmaker.feature.settings.domain.interactor.ThemeInteractor
 
 class SettingsViewModel(
-    private val themeManager: ThemeManager
+    private val themeInteractor: ThemeInteractor
 ) : ViewModel() {
 
     private val _themeState = MutableLiveData<Boolean>()
@@ -17,11 +17,11 @@ class SettingsViewModel(
     }
 
     fun loadTheme() {
-        _themeState.value = themeManager.isDarkTheme()
+        _themeState.value = themeInteractor.isDarkTheme()
     }
 
     fun saveTheme(isDarkTheme: Boolean) {
-        themeManager.saveTheme(isDarkTheme)
+        themeInteractor.saveTheme(isDarkTheme)
         _themeState.value = isDarkTheme
     }
 }

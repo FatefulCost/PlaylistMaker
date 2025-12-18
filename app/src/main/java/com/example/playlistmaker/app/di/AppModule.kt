@@ -5,6 +5,4 @@ import com.example.playlistmaker.core.network.RetrofitClient
 import org.koin.dsl.module
 
 val appModule = module {
-    // Сетевые зависимости
-    single<ITunesApiService> { RetrofitClient.iTunesApi }
 }

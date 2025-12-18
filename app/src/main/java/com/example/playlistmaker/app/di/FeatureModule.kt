@@ -1,6 +1,10 @@
 package com.example.playlistmaker.app.di
 
 import android.content.Context
+import android.content.SharedPreferences
+import com.example.playlistmaker.core.network.RetrofitClient
+import com.example.playlistmaker.core.network.createGson
+import com.example.playlistmaker.core.network.createOkHttpClient
 import com.example.playlistmaker.core.theme.ThemeManager
 import com.example.playlistmaker.feature.search.data.repository.HistoryRepositoryImpl
 import com.example.playlistmaker.feature.search.data.repository.TrackRepositoryImpl
@@ -21,11 +25,31 @@ import com.example.playlistmaker.feature.sharing.domain.interactor.SharingIntera
 import com.example.playlistmaker.feature.sharing.domain.interactor.impl.SharingInteractorImpl
 import com.example.playlistmaker.feature.sharing.domain.repository.SharingRepository
 import com.example.playlistmaker.feature.sharing.ui.viewmodel.SharingViewModel
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 val featureModule = module {
+
+    // Создаем Gson
+    single<Gson> { createGson() }
+
+    // Создаем OkHttpClient
+    single<OkHttpClient> { createOkHttpClient() }
+
+    // Создаем RetrofitClient
+    single { RetrofitClient(get(), get()) }
+
+    // Создаем ITunesApiService через RetrofitClient
+    single { get<RetrofitClient>().createApiService() }
 
     // search
     // Репозитории
@@ -34,7 +58,7 @@ val featureModule = module {
     }
 
     single<HistoryRepository> {
-        HistoryRepositoryImpl(androidContext())
+        HistoryRepositoryImpl(get(named("history_prefs")), get())
     }
 
     // Интеракторы
@@ -53,7 +77,7 @@ val featureModule = module {
     // settings
     // Репозиторий
     single<ThemeRepository> {
-        ThemeRepositoryImpl(androidContext())
+        ThemeRepositoryImpl(get(named("theme_prefs")))
     }
 
     // Интерактор
@@ -82,4 +106,18 @@ val featureModule = module {
     // Тема
     single { ThemeManager(get()) }
 
+    // Создаем общий SharedPreferences
+    single<SharedPreferences> {
+        androidContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+    }
+
+    // Создаем History SharedPreferences с квалификатором
+    single<SharedPreferences>(named("history_prefs")) {
+        androidContext().getSharedPreferences("search_history_prefs", Context.MODE_PRIVATE)
+    }
+
+    // Создаем Theme SharedPreferences с квалификатором
+    single<SharedPreferences>(named("theme_prefs")) {
+        androidContext().getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+    }
 }
