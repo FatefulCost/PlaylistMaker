@@ -16,19 +16,16 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.playlistmaker.R
-import com.example.playlistmaker.core.creator.InteractorCreator
-import com.example.playlistmaker.core.network.RetrofitClient
 import com.example.playlistmaker.feature.player.ui.PlayerActivity
 import com.example.playlistmaker.feature.search.ui.adapter.TracksAdapter
 import com.example.playlistmaker.feature.search.ui.viewmodel.SearchUiState
 import com.example.playlistmaker.feature.search.ui.viewmodel.SearchViewModel
-import com.example.playlistmaker.feature.search.ui.viewmodel.SearchViewModelFactory
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SearchActivity : AppCompatActivity() {
     private lateinit var searchEditText: EditText
@@ -53,12 +50,7 @@ class SearchActivity : AppCompatActivity() {
     private var lastClickTime = 0L
     private val CLICK_DEBOUNCE_DELAY = 1000L
 
-    private val viewModel: SearchViewModel by viewModels {
-        SearchViewModelFactory(
-            InteractorCreator.createSearchInteractor(RetrofitClient.iTunesApi),
-            InteractorCreator.createHistoryInteractor(this)
-        )
-    }
+    private val viewModel: SearchViewModel by viewModel()
 
     companion object {
         private const val SEARCH_QUERY_KEY = "search_query_key"

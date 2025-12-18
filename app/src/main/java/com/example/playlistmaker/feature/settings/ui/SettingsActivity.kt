@@ -2,32 +2,20 @@ package com.example.playlistmaker.feature.settings.ui
 
 import android.os.Bundle
 import android.widget.TextView
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.playlistmaker.R
-import com.example.playlistmaker.core.creator.InteractorCreator
-import com.example.playlistmaker.feature.sharing.ui.viewmodel.SharingViewModel
-import com.example.playlistmaker.feature.sharing.ui.viewmodel.SharingViewModelFactory
 import com.example.playlistmaker.feature.settings.ui.viewmodel.SettingsViewModel
-import com.example.playlistmaker.feature.settings.ui.viewmodel.SettingsViewModelFactory
+import com.example.playlistmaker.feature.sharing.ui.viewmodel.SharingViewModel
 import com.google.android.material.switchmaterial.SwitchMaterial
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var themeSwitch: SwitchMaterial
 
-    private val settingsViewModel: SettingsViewModel by viewModels {
-        SettingsViewModelFactory(
-            InteractorCreator.createThemeInteractor(this)
-        )
-    }
-
-    private val sharingViewModel: SharingViewModel by viewModels {
-        SharingViewModelFactory(
-            InteractorCreator.createSharingInteractor(this)
-        )
-    }
+    private val settingsViewModel: SettingsViewModel by viewModel()
+    private val sharingViewModel: SharingViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +44,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupThemeSwitch() {
         themeSwitch.setOnCheckedChangeListener { _, isChecked ->
             settingsViewModel.saveTheme(isChecked)
-            applyTheme(isChecked, recreate = false)
+            applyTheme(isChecked)
         }
     }
 
@@ -66,15 +54,11 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun applyTheme(isDarkTheme: Boolean, recreate: Boolean = false) {
+    private fun applyTheme(isDarkTheme: Boolean) {
         if (isDarkTheme) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        }
-
-        if (recreate) {
-            recreate()
         }
     }
 
@@ -82,6 +66,7 @@ class SettingsActivity : AppCompatActivity() {
         val shareText = findViewById<TextView>(R.id.shareAppText)
         shareText.setOnClickListener {
             sharingViewModel.shareApp(
+                context = this,
                 shareMessage = getString(R.string.share_message),
                 shareSubject = getString(R.string.share_message_extra_subject)
             )
@@ -90,6 +75,7 @@ class SettingsActivity : AppCompatActivity() {
         val supportText = findViewById<TextView>(R.id.supportText)
         supportText.setOnClickListener {
             sharingViewModel.sendSupportEmail(
+                context = this,
                 email = getString(R.string.email),
                 subject = getString(R.string.email_subject),
                 body = getString(R.string.email_body)
@@ -99,6 +85,7 @@ class SettingsActivity : AppCompatActivity() {
         val termsText = findViewById<TextView>(R.id.termsText)
         termsText.setOnClickListener {
             sharingViewModel.openTermsAndConditions(
+                context = this,
                 termsUrl = getString(R.string.terms_url)
             )
         }
