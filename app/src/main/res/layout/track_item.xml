@@ -71,7 +71,7 @@
             android:layout_height="wrap_content"
             android:text="2:55"
             android:fontFamily="@font/ys_display_regular"
-            android:textSize="14sp"
+            android:textSize="11sp"
             android:textColor="@color/song_artist_name_text_color" />
 
     </LinearLayout>
