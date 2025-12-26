@@ -7,15 +7,15 @@ class SharingInteractorImpl(
     private val sharingRepository: SharingRepository
 ) : SharingInteractor {
 
-    override fun shareApp(shareMessage: String, shareSubject: String) {
-        sharingRepository.shareApp(shareMessage, shareSubject)
+    override fun shareApp(context: android.content.Context, shareMessage: String, shareSubject: String) {
+        sharingRepository.shareApp(context, shareMessage, shareSubject)
     }
 
-    override fun sendSupportEmail(email: String, subject: String, body: String) {
-        sharingRepository.sendSupportEmail(email, subject, body)
+    override fun sendSupportEmail(context: android.content.Context, email: String, subject: String, body: String) {
+        sharingRepository.sendSupportEmail(context, email, subject, body)
     }
 
-    override fun openTermsAndConditions(termsUrl: String) {
-        sharingRepository.openTermsAndConditions(termsUrl)
+    override fun openTermsAndConditions(context: android.content.Context, termsUrl: String) {
+        sharingRepository.openTermsAndConditions(context, termsUrl)
     }
 }

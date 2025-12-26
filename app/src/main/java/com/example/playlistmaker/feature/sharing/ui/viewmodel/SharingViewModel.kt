@@ -7,15 +7,15 @@ class SharingViewModel(
     private val sharingInteractor: SharingInteractor
 ) : ViewModel() {
 
-    fun shareApp(shareMessage: String, shareSubject: String) {
-        sharingInteractor.shareApp(shareMessage, shareSubject)
+    fun shareApp(context: android.content.Context, shareMessage: String, shareSubject: String) {
+        sharingInteractor.shareApp(context, shareMessage, shareSubject)
     }
 
-    fun sendSupportEmail(email: String, subject: String, body: String) {
-        sharingInteractor.sendSupportEmail(email, subject, body)
+    fun sendSupportEmail(context: android.content.Context, email: String, subject: String, body: String) {
+        sharingInteractor.sendSupportEmail(context, email, subject, body)
     }
 
-    fun openTermsAndConditions(termsUrl: String) {
-        sharingInteractor.openTermsAndConditions(termsUrl)
+    fun openTermsAndConditions(context: android.content.Context, termsUrl: String) {
+        sharingInteractor.openTermsAndConditions(context, termsUrl)
     }
 }
