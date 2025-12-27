@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/new_play_list_button_text"
+    android:padding="24dp">
+
+    <Button
+        android:id="@+id/btnCreatePlaylist"
+        android:text="@string/create_new_playlist"
+        style="@style/ButtonStylePlaylist"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivEmptyState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/empty_favorites"
+        android:layout_marginTop="46dp"
+        app:layout_constraintTop_toBottomOf="@id/btnCreatePlaylist"
+        app:layout_constraintBottom_toTopOf="@id/tvEmptyMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvEmptyMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_playlists_yet"
+        android:textSize="19sp"
+        android:textColor="@color/text_in_media"
+        android:layout_marginTop="16dp"
+        android:gravity="center_horizontal"
+        android:fontFamily="@font/ys_display_medium"
+        app:layout_constraintTop_toBottomOf="@id/ivEmptyState"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
