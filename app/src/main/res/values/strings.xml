@@ -44,5 +44,16 @@
 
     <string name="play" translatable="false">Воспроизвести</string>
     <string name="pause" translatable="false">Пауза</string>
+
+    <string name="media_library" translatable="false">Медиатека</string>
+    <string name="back" translatable="false">Назад</string>
+
+    <string name="playlists_tab" translatable="false">Плейлисты</string>
+    <string name="favorites_tab" translatable="false">Избранные треки</string>
+
+    <string name="create_new_playlist" translatable="false">Новый плейлист</string>
+    <string name="no_playlists_yet" translatable="false">Вы не создали ни одного плейлиста</string>
+
+    <string name="no_favorites_yet" translatable="false">Ваша медиатека пуста</string>
 </resources>
 
