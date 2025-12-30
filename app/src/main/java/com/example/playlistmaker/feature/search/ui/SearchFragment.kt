@@ -224,24 +224,13 @@ class SearchFragment : Fragment() {
     }
 
     private fun clearSearch() {
-        // Останавливаем любой текущий поиск
         searchRunnable?.let { handler.removeCallbacks(it) }
         searchRunnable = null
-
-        // Очищаем поле ввода
         binding.searchEditText.setText("")
-
-        // Обновляем иконку
         updateClearIcon("")
-
-        // Скрываем клавиатуру
         hideKeyboard()
-
-        // Обновляем состояние в ViewModel
         viewModel.updateSearchText("")
         viewModel.resetSearch()
-
-        // НЕМЕДЛЕННО загружаем историю
         viewModel.loadSearchHistory()
     }
 
