@@ -24,12 +24,27 @@ class SearchViewModel(
     private val historyInteractor: HistoryInteractor
 ) : ViewModel() {
 
+    var lastSearchText: String = ""
+        private set
+
     private val _searchState = MutableLiveData<SearchUiState>(SearchUiState.Initial)
     val searchState: LiveData<SearchUiState> = _searchState
 
     private var lastSearchQuery: String = ""
+    private var lastSearchResults: List<Track> = emptyList()
+
+    // Добавляем LiveData для текста поиска
+    private val _searchText = MutableLiveData<String>("")
+    val searchText: LiveData<String> = _searchText
 
     fun loadSearchHistory() {
+        // Если есть сохраненные результаты поиска, показываем их
+        if (lastSearchResults.isNotEmpty()) {
+            _searchState.value = SearchUiState.Success(lastSearchResults)
+            return
+        }
+
+        // Иначе показываем историю
         val history = historyInteractor.getSearchHistory()
         if (history.isEmpty()) {
             _searchState.value = SearchUiState.Initial
@@ -40,19 +55,27 @@ class SearchViewModel(
 
     fun searchTracks(query: String) {
         if (query.isBlank()) {
+            _searchText.value = ""
             loadSearchHistory()
             return
         }
 
         lastSearchQuery = query
+        _searchText.value = query
         _searchState.value = SearchUiState.Loading
 
         viewModelScope.launch {
             val result = searchInteractor.searchTracks(query)
             _searchState.value = when (result) {
-                is SearchResult.Success -> SearchUiState.Success(result.tracks)
+                is SearchResult.Success -> {
+                    lastSearchResults = result.tracks
+                    SearchUiState.Success(result.tracks)
+                }
                 is SearchResult.Error -> SearchUiState.Error(result.message)
-                SearchResult.Empty -> SearchUiState.Empty
+                SearchResult.Empty -> {
+                    lastSearchResults = emptyList()
+                    SearchUiState.Empty
+                }
             }
         }
     }
@@ -63,6 +86,8 @@ class SearchViewModel(
 
     fun clearSearchHistory() {
         historyInteractor.clearSearchHistory()
+        lastSearchResults = emptyList()
+        _searchText.value = ""
         loadSearchHistory()
     }
 
@@ -70,5 +95,17 @@ class SearchViewModel(
         if (lastSearchQuery.isNotBlank()) {
             searchTracks(lastSearchQuery)
         }
+    }
+
+    // Метод для сброса состояния поиска
+    fun resetSearch() {
+        _searchText.value = ""
+        lastSearchResults = emptyList()
+        loadSearchHistory()
+    }
+
+    // Метод для обновления текста поиска без выполнения поиска
+    fun updateSearchText(text: String) {
+        lastSearchText = text
     }
 }

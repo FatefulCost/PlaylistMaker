@@ -1,6 +1,7 @@
 package com.example.playlistmaker.feature.main.ui
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -30,6 +31,27 @@ class MainActivity : AppCompatActivity() {
         // Настройка BottomNavigationView
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
+        // Создаем AppBarConfiguration
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.mediaFragment,
+                R.id.searchFragment,
+                R.id.settingsFragment
+            )
+        )
+
         bottomNavigationView.setupWithNavController(navController)
+
+        // Добавляем слушатель для отслеживания текущего экрана
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            // Проверяем, открыт ли PlayerFragment
+            if (destination.id == R.id.playerFragment) {
+                // Скрываем BottomNavigationView
+                bottomNavigationView.visibility = View.GONE
+            } else {
+                // Показываем BottomNavigationView для других экранов
+                bottomNavigationView.visibility = View.VISIBLE
+            }
+        }
     }
 }
