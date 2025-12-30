@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/new_play_list_button_text">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar_media"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="@string/media_library"
+        style="@style/CustomToolbarStyleSettings" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout_media"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/CustomTabLayout"
+        android:background="@color/new_play_list_button_text"
+        app:tabIndicatorColor="@color/tab_indicator"
+        app:tabSelectedTextColor="@color/tab_indicator"
+        app:tabTextColor="@color/not_selected_tab"
+        app:tabMode="fixed"
+        app:tabGravity="fill" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager_media"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/new_play_list_button_text" />
+
+</LinearLayout>

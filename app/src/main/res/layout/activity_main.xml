@@ -1,45 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/back_ground_color"
-    android:orientation="vertical"
-    android:layout_weight="1"
-    android:gravity="center"
-    android:paddingLeft="@dimen/padding_left_and_right"
-    android:paddingRight="@dimen/padding_left_and_right"
-    android:paddingBottom="28dp">
+    android:background="@color/back_ground_color_settings">
 
-    <com.google.android.material.appbar.MaterialToolbar
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:layout_marginBottom="40dp"
-        app:title="@string/play_list"
-        style="@style/CustomToolbarStyle"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="?attr/actionBarSize"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/main_nav_graph" />
 
-        >
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/nav_menu_background"
+        app:elevation="8dp"
+        app:itemTextAppearanceActive="@style/BottomNavigationText"
+        app:itemTextAppearanceInactive="@style/BottomNavigationText"
+        app:itemIconTint="@drawable/bottom_nav_selector"
+        app:itemTextColor="@drawable/bottom_nav_selector"
+        app:menu="@menu/bottom_nav_menu" />
 
-    </com.google.android.material.appbar.MaterialToolbar>
-
-        <Button
-            android:id="@+id/button1"
-            android:text="@string/search"
-            app:icon="@drawable/vector_lupa"
-            style="@style/ButtonStyle"/>
-
-        <Button
-            android:id="@+id/button2"
-            android:text="@string/media"
-            app:icon="@drawable/vector"
-            style="@style/ButtonStyle"/>
-
-        <Button
-            android:id="@+id/button3"
-            android:text="@string/settings"
-            app:icon="@drawable/group"
-            style="@style/ButtonStyle"
-            />
-
-    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

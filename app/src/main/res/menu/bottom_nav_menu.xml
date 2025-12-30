@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/searchFragment"
+        android:icon="@drawable/vector_lupa"
+        android:title="@string/search" />
+    <item
+        android:id="@+id/mediaFragment"
+        android:icon="@drawable/vector"
+        android:title="@string/media" />
+
+    <item
+        android:id="@+id/settingsFragment"
+        android:icon="@drawable/group"
+        android:title="@string/settings" />
+</menu>

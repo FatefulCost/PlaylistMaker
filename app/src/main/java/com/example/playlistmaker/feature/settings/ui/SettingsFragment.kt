@@ -1,56 +1,57 @@
 package com.example.playlistmaker.feature.settings.ui
 
 import android.os.Bundle
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.fragment.app.Fragment
 import com.example.playlistmaker.R
+import com.example.playlistmaker.databinding.FragmentSettingsBinding
 import com.example.playlistmaker.feature.settings.ui.viewmodel.SettingsViewModel
 import com.example.playlistmaker.feature.sharing.ui.viewmodel.SharingViewModel
-import com.google.android.material.switchmaterial.SwitchMaterial
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsFragment : Fragment() {
 
-    private lateinit var themeSwitch: SwitchMaterial
+    private var _binding: FragmentSettingsBinding? = null
+    private val binding get() = _binding!!
 
     private val settingsViewModel: SettingsViewModel by viewModel()
     private val sharingViewModel: SharingViewModel by viewModel()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         initViews()
-        setupToolbar()
         setupThemeSwitch()
         setupObservers()
         setupClickListeners()
     }
 
     private fun initViews() {
-        themeSwitch = findViewById(R.id.themeSwitch)
-    }
-
-    private fun setupToolbar() {
-        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        toolbar.setNavigationOnClickListener {
-            finish()
-        }
+        // View binding уже инициализирован
     }
 
     private fun setupThemeSwitch() {
-        themeSwitch.setOnCheckedChangeListener { _, isChecked ->
+        binding.themeSwitch.setOnCheckedChangeListener { _, isChecked ->
             settingsViewModel.saveTheme(isChecked)
             applyTheme(isChecked)
         }
     }
 
     private fun setupObservers() {
-        settingsViewModel.themeState.observe(this) { isDarkTheme ->
-            themeSwitch.isChecked = isDarkTheme
+        settingsViewModel.themeState.observe(viewLifecycleOwner) { isDarkTheme ->
+            binding.themeSwitch.isChecked = isDarkTheme
         }
     }
 
@@ -63,31 +64,33 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        val shareText = findViewById<TextView>(R.id.shareAppText)
-        shareText.setOnClickListener {
+        binding.shareAppText.setOnClickListener {
             sharingViewModel.shareApp(
-                context = this,
+                context = requireContext(),
                 shareMessage = getString(R.string.share_message),
                 shareSubject = getString(R.string.share_message_extra_subject)
             )
         }
 
-        val supportText = findViewById<TextView>(R.id.supportText)
-        supportText.setOnClickListener {
+        binding.supportText.setOnClickListener {
             sharingViewModel.sendSupportEmail(
-                context = this,
+                context = requireContext(),
                 email = getString(R.string.email),
                 subject = getString(R.string.email_subject),
                 body = getString(R.string.email_body)
             )
         }
 
-        val termsText = findViewById<TextView>(R.id.termsText)
-        termsText.setOnClickListener {
+        binding.termsText.setOnClickListener {
             sharingViewModel.openTermsAndConditions(
-                context = this,
+                context = requireContext(),
                 termsUrl = getString(R.string.terms_url)
             )
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
