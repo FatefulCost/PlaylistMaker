@@ -120,4 +120,8 @@ val featureModule = module {
     single<SharedPreferences>(named("theme_prefs")) {
         androidContext().getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
     }
+
+    // Медиатека
+    viewModel { com.example.playlistmaker.feature.media.ui.viewmodels.PlaylistsViewModel() }
+    viewModel { com.example.playlistmaker.feature.media.ui.viewmodels.FavoritesViewModel() }
 }

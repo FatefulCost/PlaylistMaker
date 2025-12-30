@@ -22,4 +22,10 @@
     <color name="history_text_color">#FFFFFF</color>
     <color name="song_details_color">#AEAFB4</color>
     <color name="time_progress">#FFFFFF</color>
+    <color name="new_play_list_button">#FFFFFF</color>
+    <color name="new_play_list_button_text">#1A1B22</color>
+    <color name="text_in_media">#FFFFFF</color>
+    <color name="tab_indicator">#FFFFFF</color>
+    <color name="toolbar_color">#FFFFFF</color>
+    <color name="not_selected_tab">#AEAFB4</color>
 </resources>

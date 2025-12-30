@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.example.playlistmaker.R
+import com.example.playlistmaker.feature.media.MediaActivity
 import com.example.playlistmaker.feature.search.ui.SearchActivity
 import com.example.playlistmaker.feature.settings.ui.SettingsActivity
 
@@ -24,8 +25,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         mediaButton.setOnClickListener {
-            // val displayIntent = Intent(this, MediaActivity::class.java)
-            // startActivity(displayIntent)
+             val displayIntent = Intent(this, MediaActivity::class.java)
+             startActivity(displayIntent)
         }
 
         searchButton.setOnClickListener {
