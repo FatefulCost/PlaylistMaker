@@ -28,4 +28,6 @@
     <color name="tab_indicator">#FFFFFF</color>
     <color name="toolbar_color">#FFFFFF</color>
     <color name="not_selected_tab">#AEAFB4</color>
+    <color name="not_selected_nav_menu">#FFFFFF</color>
+    <color name="nav_menu_background">#1A1B22</color>
 </resources>
