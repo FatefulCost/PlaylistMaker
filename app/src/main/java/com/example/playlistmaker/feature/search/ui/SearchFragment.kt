@@ -2,8 +2,6 @@ package com.example.playlistmaker.feature.search.ui
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -17,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentSearchBinding
+import com.example.playlistmaker.feature.search.domain.model.Track
 import com.example.playlistmaker.feature.search.ui.adapter.TracksAdapter
 import com.example.playlistmaker.feature.search.ui.viewmodel.SearchUiState
 import com.example.playlistmaker.feature.search.ui.viewmodel.SearchViewModel
@@ -30,13 +29,6 @@ class SearchFragment : Fragment() {
     private lateinit var tracksAdapter: TracksAdapter
     private lateinit var historyAdapter: TracksAdapter
 
-    private val handler = Handler(Looper.getMainLooper())
-    private var searchRunnable: Runnable? = null
-    private val DEBOUNCE_DELAY = 2000L
-
-    private var lastClickTime = 0L
-    private val CLICK_DEBOUNCE_DELAY = 1000L
-
     private val viewModel: SearchViewModel by viewModel()
     private lateinit var inputMethodManager: InputMethodManager
 
@@ -45,6 +37,7 @@ class SearchFragment : Fragment() {
 
     companion object {
         private const val SEARCH_QUERY_KEY = "search_query_key"
+        private const val SEARCH_STATE_KEY = "search_state_key"
     }
 
     override fun onCreateView(
@@ -64,7 +57,6 @@ class SearchFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
 
-        // Восстанавливаем текст поиска из ViewModel
         viewModel.searchText.observe(viewLifecycleOwner) { searchText ->
             if (!isUpdatingFromViewModel && binding.searchEditText.text.toString() != searchText) {
                 isUpdatingFromViewModel = true
@@ -74,19 +66,28 @@ class SearchFragment : Fragment() {
             }
         }
 
-        // Восстанавливаем состояние из savedInstanceState
-        savedInstanceState?.getString(SEARCH_QUERY_KEY)?.let { savedQuery ->
+        if (savedInstanceState != null) {
+            val savedQuery = savedInstanceState.getString(SEARCH_QUERY_KEY) ?: ""
             binding.searchEditText.setText(savedQuery)
             updateClearIcon(savedQuery)
-            viewModel.updateSearchText(savedQuery)
 
-            if (savedQuery.isNotBlank()) {
-                viewModel.searchTracks(savedQuery)
-            } else {
+            // Если был поисковый запрос, не загружаем историю,
+            // так как ViewModel должна сохранить результаты поиска
+            if (savedQuery.isBlank()) {
                 viewModel.loadSearchHistory()
             }
-        } ?: run {
-            // Иначе загружаем состояние из ViewModel
+        } else {
+            // При первом создании загружаем историю только если нет сохраненного состояния
+            viewModel.loadSearchHistory()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // При возврате на фрагмент проверяем, нужно ли показать результаты поиска
+        val currentText = binding.searchEditText.text.toString()
+        if (currentText.isNotBlank()) {
+        } else {
             viewModel.loadSearchHistory()
         }
     }
@@ -126,19 +127,14 @@ class SearchFragment : Fragment() {
         }
     }
 
-    private fun onTrackClicked(track: com.example.playlistmaker.feature.search.domain.model.Track) {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastClickTime < CLICK_DEBOUNCE_DELAY) {
-            return
-        }
-        lastClickTime = currentTime
-
+    private fun onTrackClicked(track: Track) {
         // Добавляем трек в историю через ViewModel
         viewModel.addTrackToHistory(track)
 
         // Навигация к экрану плеера
-        val bundle = Bundle()
-        bundle.putSerializable("track", track)
+        val bundle = Bundle().apply {
+            putSerializable("track", track)
+        }
         findNavController().navigate(R.id.playerFragment, bundle)
     }
 
@@ -155,23 +151,9 @@ class SearchFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (isUpdatingFromViewModel) return
 
-                updateClearIcon(s)
-
-                searchRunnable?.let { handler.removeCallbacks(it) }
-
-                if (!s.isNullOrEmpty() && s.toString().isNotBlank()) {
-                    searchRunnable = Runnable {
-                        performDebouncedSearch(s.toString())
-                    }
-                    handler.postDelayed(searchRunnable!!, DEBOUNCE_DELAY)
-
-                    // Сохраняем текст в ViewModel
-                    viewModel.updateSearchText(s.toString())
-                } else {
-                    // При очистке поля показываем историю
-                    viewModel.updateSearchText("")
-                    viewModel.resetSearch()
-                }
+                val newText = s?.toString() ?: ""
+                updateClearIcon(newText)
+                viewModel.onSearchTextChanged(newText)
             }
 
             override fun afterTextChanged(s: Editable?) {}
@@ -179,8 +161,6 @@ class SearchFragment : Fragment() {
 
         binding.searchEditText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
-                searchRunnable?.let { handler.removeCallbacks(it) }
-                performSearch()
                 hideKeyboard()
                 return@setOnEditorActionListener true
             }
@@ -209,29 +189,11 @@ class SearchFragment : Fragment() {
         }
     }
 
-    private fun performDebouncedSearch(query: String) {
-        val trimmedQuery = query.trim()
-        if (trimmedQuery.isNotBlank()) {
-            viewModel.searchTracks(trimmedQuery)
-        }
-    }
-
-    private fun performSearch() {
-        val query = binding.searchEditText.text.toString().trim()
-        if (query.isNotBlank()) {
-            viewModel.searchTracks(query)
-        }
-    }
-
     private fun clearSearch() {
-        searchRunnable?.let { handler.removeCallbacks(it) }
-        searchRunnable = null
         binding.searchEditText.setText("")
         updateClearIcon("")
         hideKeyboard()
-        viewModel.updateSearchText("")
         viewModel.resetSearch()
-        viewModel.loadSearchHistory()
     }
 
     private fun showInitialState() {
@@ -242,7 +204,7 @@ class SearchFragment : Fragment() {
         binding.clearHistoryButton.visibility = View.GONE
     }
 
-    private fun showSearchHistory(history: List<com.example.playlistmaker.feature.search.domain.model.Track>) {
+    private fun showSearchHistory(history: List<Track>) {
         if (history.isNotEmpty()) {
             binding.historyLayout.visibility = View.VISIBLE
             binding.tracksRecyclerView.visibility = View.GONE
@@ -266,7 +228,7 @@ class SearchFragment : Fragment() {
         binding.clearHistoryButton.visibility = View.GONE
     }
 
-    private fun showResults(tracks: List<com.example.playlistmaker.feature.search.domain.model.Track>) {
+    private fun showResults(tracks: List<Track>) {
         binding.progressBar.visibility = View.GONE
         binding.tracksRecyclerView.visibility = View.VISIBLE
         binding.historyLayout.visibility = View.GONE
@@ -336,7 +298,6 @@ class SearchFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        handler.removeCallbacksAndMessages(null)
         _binding = null
     }
 }

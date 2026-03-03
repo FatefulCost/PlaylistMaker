@@ -2,18 +2,21 @@ package com.example.playlistmaker.feature.player.ui
 
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentPlayerBinding
 import com.example.playlistmaker.feature.search.domain.model.Track
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class PlayerFragment : Fragment() {
 
@@ -23,8 +26,7 @@ class PlayerFragment : Fragment() {
     private var mediaPlayer: MediaPlayer? = null
     private var playbackPosition = 0
     private var isPlaying = false
-    private val handler = Handler(Looper.getMainLooper())
-    private lateinit var updateProgressRunnable: Runnable
+    private var progressUpdateJob: Job? = null
 
     private var currentTrack: Track? = null
 
@@ -44,13 +46,6 @@ class PlayerFragment : Fragment() {
         setupPlayButton()
         displayTrackInfo()
         setupMediaPlayer()
-
-        updateProgressRunnable = object : Runnable {
-            override fun run() {
-                updateProgress()
-                handler.postDelayed(this, 300)
-            }
-        }
     }
 
     private fun setupBackButton() {
@@ -107,7 +102,7 @@ class PlayerFragment : Fragment() {
         mediaPlayer = MediaPlayer().apply {
             setOnCompletionListener {
                 playbackPosition = 0
-                handler.removeCallbacks(updateProgressRunnable)
+                stopProgressUpdates()
                 binding.progressTextView.text = "00:00"
                 this@PlayerFragment.isPlaying = false
                 updatePlayButton()
@@ -145,7 +140,7 @@ class PlayerFragment : Fragment() {
                 it.start()
                 isPlaying = true
                 updatePlayButton()
-                handler.post(updateProgressRunnable)
+                startProgressUpdates()
             }
 
         } catch (e: Exception) {
@@ -158,7 +153,7 @@ class PlayerFragment : Fragment() {
         playbackPosition = mediaPlayer?.currentPosition ?: 0
         isPlaying = false
         updatePlayButton()
-        handler.removeCallbacks(updateProgressRunnable)
+        stopProgressUpdates()
     }
 
     private fun stopPlayback() {
@@ -166,8 +161,23 @@ class PlayerFragment : Fragment() {
         playbackPosition = 0
         isPlaying = false
         updatePlayButton()
-        handler.removeCallbacks(updateProgressRunnable)
+        stopProgressUpdates()
         binding.progressTextView.text = "00:00"
+    }
+
+    private fun startProgressUpdates() {
+        progressUpdateJob?.cancel()
+        progressUpdateJob = viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive && isPlaying) {
+                updateProgress()
+                delay(300) // Обновление каждые 300 мс
+            }
+        }
+    }
+
+    private fun stopProgressUpdates() {
+        progressUpdateJob?.cancel()
+        progressUpdateJob = null
     }
 
     private fun updateProgress() {
@@ -214,7 +224,7 @@ class PlayerFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        handler.removeCallbacks(updateProgressRunnable)
+        stopProgressUpdates()
         mediaPlayer?.release()
         mediaPlayer = null
         _binding = null
@@ -222,8 +232,8 @@ class PlayerFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        stopProgressUpdates()
         mediaPlayer?.release()
         mediaPlayer = null
     }
-
 }

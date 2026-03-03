@@ -8,6 +8,16 @@ import com.example.playlistmaker.feature.search.domain.interactor.HistoryInterac
 import com.example.playlistmaker.feature.search.domain.interactor.SearchInteractor
 import com.example.playlistmaker.feature.search.domain.interactor.SearchResult
 import com.example.playlistmaker.feature.search.domain.model.Track
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
 sealed class SearchUiState {
@@ -30,21 +40,84 @@ class SearchViewModel(
     private val _searchState = MutableLiveData<SearchUiState>(SearchUiState.Initial)
     val searchState: LiveData<SearchUiState> = _searchState
 
-    private var lastSearchQuery: String = ""
-    private var lastSearchResults: List<Track> = emptyList()
-
-    // Добавляем LiveData для текста поиска
     private val _searchText = MutableLiveData<String>("")
     val searchText: LiveData<String> = _searchText
 
+    private var searchJob: Job? = null
+    private var lastSearchQuery: String = ""
+
+    private val searchQueryFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    private var lastSearchResults: List<Track> = emptyList()
+
+    init {
+        setupSearchDebounce()
+        loadSearchHistory()
+    }
+
+    private fun setupSearchDebounce() {
+        viewModelScope.launch {
+            searchQueryFlow
+                .debounce(2000L) // Задержка 2 секунды
+                .distinctUntilChanged()
+                .collectLatest { query ->
+                    if (query.isNotBlank()) {
+                        performSearch(query)
+                    } else {
+                        loadSearchHistory()
+                    }
+                }
+        }
+    }
+
+    fun onSearchTextChanged(text: String) {
+        _searchText.value = text
+        lastSearchText = text
+        viewModelScope.launch {
+            searchQueryFlow.emit(text)
+        }
+    }
+
+    private fun performSearch(query: String) {
+        if (query.isBlank()) return
+
+        lastSearchQuery = query
+        _searchState.value = SearchUiState.Loading
+
+        viewModelScope.launch {
+            searchInteractor.searchTracks(query)
+                .catch { exception ->
+                    _searchState.value = SearchUiState.Error(
+                        "Ошибка поиска: ${exception.message ?: "Неизвестная ошибка"}"
+                    )
+                }
+                .collect { result ->
+                    when (result) {
+                        is SearchResult.Success -> {
+                            lastSearchResults = result.tracks // Сохраняем результаты
+                            _searchState.value = SearchUiState.Success(result.tracks)
+                        }
+                        is SearchResult.Error -> {
+                            lastSearchResults = emptyList()
+                            _searchState.value = SearchUiState.Error(result.message)
+                        }
+                        SearchResult.Empty -> {
+                            lastSearchResults = emptyList()
+                            _searchState.value = SearchUiState.Empty
+                        }
+                    }
+                }
+        }
+    }
+
+
     fun loadSearchHistory() {
-        // Если есть сохраненные результаты поиска, показываем их
-        if (lastSearchResults.isNotEmpty()) {
+        // Если есть результаты последнего поиска и есть текст в поиске, не показываем историю
+        val currentText = _searchText.value ?: ""
+        if (lastSearchResults.isNotEmpty() && currentText.isNotBlank()) {
             _searchState.value = SearchUiState.Success(lastSearchResults)
             return
         }
 
-        // Иначе показываем историю
         val history = historyInteractor.getSearchHistory()
         if (history.isEmpty()) {
             _searchState.value = SearchUiState.Initial
@@ -53,32 +126,6 @@ class SearchViewModel(
         }
     }
 
-    fun searchTracks(query: String) {
-        if (query.isBlank()) {
-            _searchText.value = ""
-            loadSearchHistory()
-            return
-        }
-
-        lastSearchQuery = query
-        _searchText.value = query
-        _searchState.value = SearchUiState.Loading
-
-        viewModelScope.launch {
-            val result = searchInteractor.searchTracks(query)
-            _searchState.value = when (result) {
-                is SearchResult.Success -> {
-                    lastSearchResults = result.tracks
-                    SearchUiState.Success(result.tracks)
-                }
-                is SearchResult.Error -> SearchUiState.Error(result.message)
-                SearchResult.Empty -> {
-                    lastSearchResults = emptyList()
-                    SearchUiState.Empty
-                }
-            }
-        }
-    }
 
     fun addTrackToHistory(track: Track) {
         historyInteractor.addTrackToHistory(track)
@@ -86,26 +133,21 @@ class SearchViewModel(
 
     fun clearSearchHistory() {
         historyInteractor.clearSearchHistory()
-        lastSearchResults = emptyList()
-        _searchText.value = ""
         loadSearchHistory()
     }
 
     fun retryLastSearch() {
         if (lastSearchQuery.isNotBlank()) {
-            searchTracks(lastSearchQuery)
+            performSearch(lastSearchQuery)
         }
     }
 
-    // Метод для сброса состояния поиска
     fun resetSearch() {
         _searchText.value = ""
-        lastSearchResults = emptyList()
+        lastSearchResults = emptyList() // Очищаем результаты поиска
+        viewModelScope.launch {
+            searchQueryFlow.emit("")
+        }
         loadSearchHistory()
-    }
-
-    // Метод для обновления текста поиска без выполнения поиска
-    fun updateSearchText(text: String) {
-        lastSearchText = text
     }
 }
