@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.playlistmaker.R
@@ -19,6 +20,9 @@ import com.example.playlistmaker.feature.search.domain.model.Track
 import com.example.playlistmaker.feature.search.ui.adapter.TracksAdapter
 import com.example.playlistmaker.feature.search.ui.viewmodel.SearchUiState
 import com.example.playlistmaker.feature.search.ui.viewmodel.SearchViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SearchFragment : Fragment() {
@@ -32,12 +36,16 @@ class SearchFragment : Fragment() {
     private val viewModel: SearchViewModel by viewModel()
     private lateinit var inputMethodManager: InputMethodManager
 
+    // Job для debounce кликов
+    private var clickDebounceJob: Job? = null
+    private var lastClickedTrack: Track? = null
+
     // Флаг для предотвращения бесконечного цикла при обновлении текста
     private var isUpdatingFromViewModel = false
 
     companion object {
         private const val SEARCH_QUERY_KEY = "search_query_key"
-        private const val SEARCH_STATE_KEY = "search_state_key"
+        private const val CLICK_DEBOUNCE_DELAY = 1000L
     }
 
     override fun onCreateView(
@@ -71,8 +79,6 @@ class SearchFragment : Fragment() {
             binding.searchEditText.setText(savedQuery)
             updateClearIcon(savedQuery)
 
-            // Если был поисковый запрос, не загружаем историю,
-            // так как ViewModel должна сохранить результаты поиска
             if (savedQuery.isBlank()) {
                 viewModel.loadSearchHistory()
             }
@@ -93,9 +99,11 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        tracksAdapter = TracksAdapter { track ->
-            onTrackClicked(track)
-        }
+        tracksAdapter = TracksAdapter(
+            onTrackClick = { track ->
+                onTrackClicked(track)
+            }
+        )
 
         binding.tracksRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -103,9 +111,11 @@ class SearchFragment : Fragment() {
             setHasFixedSize(true)
         }
 
-        historyAdapter = TracksAdapter { track ->
-            onTrackClicked(track)
-        }
+        historyAdapter = TracksAdapter(
+            onTrackClick = { track ->
+                onTrackClicked(track)
+            }
+        )
 
         binding.historyRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -128,14 +138,24 @@ class SearchFragment : Fragment() {
     }
 
     private fun onTrackClicked(track: Track) {
-        // Добавляем трек в историю через ViewModel
-        viewModel.addTrackToHistory(track)
+        clickDebounceJob?.cancel()
 
-        // Навигация к экрану плеера
-        val bundle = Bundle().apply {
-            putSerializable("track", track)
+        clickDebounceJob = lifecycleScope.launch {
+            delay(CLICK_DEBOUNCE_DELAY)
+
+            if (lastClickedTrack?.trackId == track.trackId) {
+                viewModel.addTrackToHistory(track)
+
+                // Навигация к экрану плеера
+                val bundle = Bundle().apply {
+                    putSerializable("track", track)
+                }
+                findNavController().navigate(R.id.playerFragment, bundle)
+            }
         }
-        findNavController().navigate(R.id.playerFragment, bundle)
+
+        // Сохраняем последний нажатый трек
+        lastClickedTrack = track
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -298,6 +318,7 @@ class SearchFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        clickDebounceJob?.cancel() // Отменяем Job при уничтожении фрагмента
         _binding = null
     }
 }
