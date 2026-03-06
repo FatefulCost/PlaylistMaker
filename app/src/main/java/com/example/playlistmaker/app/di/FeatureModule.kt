@@ -6,6 +6,14 @@ import com.example.playlistmaker.core.network.RetrofitClient
 import com.example.playlistmaker.core.network.createGson
 import com.example.playlistmaker.core.network.createOkHttpClient
 import com.example.playlistmaker.core.theme.ThemeManager
+import com.example.playlistmaker.feature.favorites.data.db.AppDatabase
+import com.example.playlistmaker.feature.favorites.data.repository.FavoritesRepositoryImpl
+import com.example.playlistmaker.feature.favorites.domain.interactor.FavoritesInteractor
+import com.example.playlistmaker.feature.favorites.domain.interactor.impl.FavoritesInteractorImpl
+import com.example.playlistmaker.feature.favorites.domain.repository.FavoritesRepository
+import com.example.playlistmaker.feature.media.ui.viewmodels.FavoritesViewModel
+import com.example.playlistmaker.feature.media.ui.viewmodels.PlaylistsViewModel
+import com.example.playlistmaker.feature.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.feature.search.data.repository.HistoryRepositoryImpl
 import com.example.playlistmaker.feature.search.data.repository.TrackRepositoryImpl
 import com.example.playlistmaker.feature.search.domain.interactor.HistoryInteractor
@@ -26,16 +34,11 @@ import com.example.playlistmaker.feature.sharing.domain.interactor.impl.SharingI
 import com.example.playlistmaker.feature.sharing.domain.repository.SharingRepository
 import com.example.playlistmaker.feature.sharing.ui.viewmodel.SharingViewModel
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
 val featureModule = module {
 
@@ -51,10 +54,16 @@ val featureModule = module {
     // Создаем ITunesApiService через RetrofitClient
     single { get<RetrofitClient>().createApiService() }
 
+    // База данных
+    single { AppDatabase.getInstance(androidContext()) }
+
     // search
     // Репозитории
     single<TrackRepository> {
-        TrackRepositoryImpl(get())
+        TrackRepositoryImpl(
+            apiService = get(),
+            favoritesRepository = get() // Добавляем зависимость от FavoritesRepository
+        )
     }
 
     single<HistoryRepository> {
@@ -71,7 +80,7 @@ val featureModule = module {
     }
 
     // ViewModel
-    viewModel { SearchViewModel(get(), get()) }
+    viewModel { SearchViewModel(get(), get(), get()) }
 
 
     // settings
@@ -106,6 +115,18 @@ val featureModule = module {
     // Тема
     single { ThemeManager(get()) }
 
+
+    // favorites
+    // Репозиторий
+    single<FavoritesRepository> {
+        FavoritesRepositoryImpl(get())
+    }
+
+    // Интерактор
+    single<FavoritesInteractor> {
+        FavoritesInteractorImpl(get())
+    }
+
     // Создаем общий SharedPreferences
     single<SharedPreferences> {
         androidContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
@@ -122,6 +143,7 @@ val featureModule = module {
     }
 
     // Медиатека
-    viewModel { com.example.playlistmaker.feature.media.ui.viewmodels.PlaylistsViewModel() }
-    viewModel { com.example.playlistmaker.feature.media.ui.viewmodels.FavoritesViewModel() }
+    viewModel { PlaylistsViewModel() }
+    viewModel { FavoritesViewModel(get()) }
+    viewModel { PlayerViewModel(get()) }
 }
