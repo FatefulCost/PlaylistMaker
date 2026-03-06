@@ -1,9 +1,10 @@
 package com.example.playlistmaker.feature.search.domain.interactor
 
 import com.example.playlistmaker.feature.search.domain.model.Track
+import kotlinx.coroutines.flow.Flow
 
 interface SearchInteractor {
-    suspend fun searchTracks(query: String): SearchResult
+    fun searchTracks(query: String): Flow<SearchResult>
 }
 
 sealed class SearchResult {
