@@ -5,14 +5,17 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.playlistmaker.feature.favorites.data.db.dao.FavoritesDao
 import com.example.playlistmaker.feature.favorites.data.db.entity.TrackEntity
+import com.example.playlistmaker.feature.media.data.db.dao.PlaylistDao
+import com.example.playlistmaker.feature.media.data.db.entity.PlaylistEntity
 
 @Database(
-    entities = [TrackEntity::class],
-    version = 1,
+    entities = [TrackEntity::class, PlaylistEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun favoritesDao(): FavoritesDao
+    abstract fun playlistDao(): PlaylistDao
 
     companion object {
         private const val DATABASE_NAME = "playlist_maker_database"
@@ -26,7 +29,8 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME
-                ).build()
+                ).fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

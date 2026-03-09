@@ -29,4 +29,10 @@
         android:label="Player"
         tools:layout="@layout/fragment_player" />
 
+    <fragment
+        android:id="@+id/createPlaylistFragment"
+        android:name="com.example.playlistmaker.feature.media.ui.fragments.CreatePlaylistFragment"
+        android:label="CreatePlaylist"
+        tools:layout="@layout/fragment_create_playlist" />
+
 </navigation>

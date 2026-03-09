@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="back_ground_color">#1A1B22</color>
@@ -30,4 +30,12 @@
     <color name="not_selected_tab">#AEAFB4</color>
     <color name="not_selected_nav_menu">#FFFFFF</color>
     <color name="nav_menu_background">#1A1B22</color>
+    <color name="playlist_name">#FFFFFF</color>
+    <color name="playlist_description">#FFFFFF</color>
+    <color name="new_playlist_button">#FFFFFF</color>
+    <color name="song_details_color_in_sheet">#FFFFFF</color>
+
+    <color name="playlist_hint_when_clicked">#FFFFFF</color>
+
+    <color name="mtrl_textinput_default_box_stroke_color" tools:override="true">#fff</color>
 </resources>

@@ -50,6 +50,7 @@ class PlayerFragment : Fragment() {
         setupBackButton()
         setupPlayButton()
         setupFavoriteButton()
+        setupAddToPlaylistButton()
         displayTrackInfo()
         setupMediaPlayer()
         setupObservers()
@@ -249,6 +250,15 @@ class PlayerFragment : Fragment() {
                 .into(binding.artworkImageView)
         } else {
             binding.artworkImageView.setImageResource(R.drawable.vector_placeholder)
+        }
+    }
+
+    private fun setupAddToPlaylistButton() {
+        binding.addToPlaylistButton.setOnClickListener {
+            currentTrack?.let { track ->
+                val bottomSheet = PlaylistBottomSheet.newInstance(track)
+                bottomSheet.show(parentFragmentManager, "PlaylistBottomSheet")
+            }
         }
     }
 
