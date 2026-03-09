@@ -12,11 +12,12 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentPlayerBinding
+import com.example.playlistmaker.feature.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.feature.search.domain.model.Track
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PlayerFragment : Fragment() {
 
@@ -30,6 +31,8 @@ class PlayerFragment : Fragment() {
 
     private var currentTrack: Track? = null
 
+    private val viewModel: PlayerViewModel by viewModel()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -42,10 +45,26 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        currentTrack = arguments?.getSerializable("track") as? Track
+
         setupBackButton()
         setupPlayButton()
+        setupFavoriteButton()
         displayTrackInfo()
         setupMediaPlayer()
+        setupObservers()
+
+        // Проверяем статус избранного через ViewModel
+        currentTrack?.let { track ->
+            viewModel.checkFavoriteStatus(track)
+        }
+    }
+
+    private fun setupObservers() {
+        // Наблюдаем за состоянием избранного
+        viewModel.favoriteState.observe(viewLifecycleOwner) { isFavorite ->
+            updateFavoriteButton(isFavorite)
+        }
     }
 
     private fun setupBackButton() {
@@ -60,8 +79,25 @@ class PlayerFragment : Fragment() {
         }
     }
 
+    private fun setupFavoriteButton() {
+        binding.addToFavoritesButton.setOnClickListener {
+            currentTrack?.let { track ->
+                viewModel.toggleFavorite(track)
+            }
+        }
+    }
+
+    private fun updateFavoriteButton(isFavorite: Boolean) {
+        if (isFavorite) {
+            // Подсвеченное состояние
+            binding.addToFavoritesButton.setImageResource(R.drawable.favorit_button_filled)
+        } else {
+            // Неподсвеченное состояние
+            binding.addToFavoritesButton.setImageResource(R.drawable.favorit_button)
+        }
+    }
+
     private fun displayTrackInfo() {
-        currentTrack = arguments?.getSerializable("track") as? Track
         currentTrack?.let { track ->
             loadArtwork(track.getHighResArtworkUrl())
             binding.trackNameTextView.text = track.trackName
@@ -167,10 +203,11 @@ class PlayerFragment : Fragment() {
 
     private fun startProgressUpdates() {
         progressUpdateJob?.cancel()
-        progressUpdateJob = viewLifecycleOwner.lifecycleScope.launch {
-            while (isActive && isPlaying) {
+        progressUpdateJob = lifecycleScope.launch {
+            while (true) {
+                if (!isPlaying) break
                 updateProgress()
-                delay(300) // Обновление каждые 300 мс
+                delay(300)
             }
         }
     }
