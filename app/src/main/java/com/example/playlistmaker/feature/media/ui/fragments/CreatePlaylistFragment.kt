@@ -102,17 +102,16 @@ class CreatePlaylistFragment : Fragment() {
     }
 
     private fun loadImageToView(uri: Uri) {
-        // Показываем изображение
-        binding.coverImageView.visibility = View.VISIBLE
+        binding.addPhotoLayout.visibility = View.GONE
+        binding.coverCardView.visibility = View.VISIBLE
+        binding.linesCover.visibility = View.GONE
         Glide.with(this)
             .load(uri)
             .placeholder(R.drawable.vector_placeholder)
             .error(R.drawable.vector_placeholder)
             .centerCrop()
-            .transform(RoundedCorners(16))
             .into(binding.coverImageView)
     }
-
     private fun createPlaylist() {
         val name = binding.playlistNameEditText.text.toString()
         if (name.isBlank()) return

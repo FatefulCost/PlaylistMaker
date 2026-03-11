@@ -21,6 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
+            android:background="@color/placeholder_background"
             android:src="@drawable/vector_placeholder" />
 
     </androidx.cardview.widget.CardView>

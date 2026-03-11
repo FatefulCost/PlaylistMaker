@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity() {
 
         // Добавляем слушатель для отслеживания текущего экрана
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            // Проверяем, открыт ли PlayerFragment
-            if (destination.id == R.id.playerFragment) {
+            // Проверяем, открыт ли PlayerFragment или CreatePlaylistFragment
+            if (destination.id == R.id.playerFragment || destination.id == R.id.createPlaylistFragment) {
                 // Скрываем BottomNavigationView
                 bottomNavigationView.visibility = View.GONE
             } else {

@@ -38,19 +38,30 @@
 
                 <!-- Пунктирная рамка -->
                 <View
+                    android:id="@+id/lines_cover"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/dashed_border" />
 
-                <!-- Изображение обложки -->
-                <ImageView
-                    android:id="@+id/cover_image_view"
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/coverCardView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"/>
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/cover_image_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop" />
+
+                </androidx.cardview.widget.CardView>
 
                 <!-- Иконка добавления фото -->
                 <LinearLayout
+                    android:id="@+id/add_photo_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -121,7 +132,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="17dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="10dp"
         android:text="@string/create"
         android:textAllCaps="false"
         android:textSize="16sp"

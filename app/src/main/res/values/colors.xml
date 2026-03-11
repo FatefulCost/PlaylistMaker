@@ -40,6 +40,7 @@
     <color name="playlist_hint_when_clicked">#AEAFB4</color>
     <color name="new_playlist_button">#1A1B22</color>
     <color name="song_details_color_in_sheet">#AEAFB4</color>
+    <color name="placeholder_background">#FFFFFF</color>
 
     <color name="mtrl_textinput_default_box_stroke_color" tools:override="true">#AEAFB4</color>
 
