@@ -1,6 +1,7 @@
 package com.example.playlistmaker.feature.media.ui.fragments
 
 import android.app.AlertDialog
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -33,6 +34,16 @@ class CreatePlaylistFragment : Fragment() {
 
     private var selectedImageUri: Uri? = null
     private var isDataChanged = false
+    private var currentName = ""
+    private var currentDescription = ""
+
+    // Ключи для сохранения состояния
+    companion object {
+        private const val KEY_SELECTED_IMAGE_URI = "selected_image_uri"
+        private const val KEY_IS_DATA_CHANGED = "is_data_changed"
+        private const val KEY_CURRENT_NAME = "current_name"
+        private const val KEY_CURRENT_DESCRIPTION = "current_description"
+    }
 
     // Регистрируем Photo Picker
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -40,6 +51,16 @@ class CreatePlaylistFragment : Fragment() {
             selectedImageUri = uri
             loadImageToView(uri)
             isDataChanged = true
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState != null) {
+            selectedImageUri = savedInstanceState.getParcelable(KEY_SELECTED_IMAGE_URI)
+            isDataChanged = savedInstanceState.getBoolean(KEY_IS_DATA_CHANGED, false)
+            currentName = savedInstanceState.getString(KEY_CURRENT_NAME, "")
+            currentDescription = savedInstanceState.getString(KEY_CURRENT_DESCRIPTION, "")
         }
     }
 
@@ -58,7 +79,16 @@ class CreatePlaylistFragment : Fragment() {
         setupClickListeners()
         setupTextWatchers()
         setupBackPressedCallback()
+        restoreData()
         updateCreateButtonState()
+    }
+
+    private fun restoreData() {
+        binding.playlistNameEditText.setText(currentName)
+        binding.playlistDescriptionEditText.setText(currentDescription)
+        if (selectedImageUri != null) {
+            loadImageToView(selectedImageUri!!)
+        }
     }
 
     private fun setupClickListeners() {
@@ -80,31 +110,38 @@ class CreatePlaylistFragment : Fragment() {
 
     private fun setupTextWatchers() {
         binding.playlistNameEditText.doAfterTextChanged {
+            currentName = it.toString()
             updateCreateButtonState()
             isDataChanged = true
         }
 
         binding.playlistDescriptionEditText.doAfterTextChanged {
+            currentDescription = it.toString()
             isDataChanged = true
         }
     }
 
     private fun setupBackPressedCallback() {
-        // Регистрируем callback для системной кнопки "Назад"
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             handleBackPress()
         }
     }
 
     private fun updateCreateButtonState() {
-        val name = binding.playlistNameEditText.text.toString()
-        binding.createButton.isEnabled = name.isNotBlank()
+        binding.createButton.isEnabled = currentName.isNotBlank()
     }
 
     private fun loadImageToView(uri: Uri) {
+        // Скрываем иконку добавления фото
         binding.addPhotoLayout.visibility = View.GONE
+
+        // Показываем CardView с изображением
         binding.coverCardView.visibility = View.VISIBLE
-        binding.linesCover.visibility = View.GONE
+
+        // Убираем фон у ImageView
+        binding.coverImageView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+
+        // Загружаем изображение
         Glide.with(this)
             .load(uri)
             .placeholder(R.drawable.vector_placeholder)
@@ -112,17 +149,16 @@ class CreatePlaylistFragment : Fragment() {
             .centerCrop()
             .into(binding.coverImageView)
     }
+
     private fun createPlaylist() {
         val name = binding.playlistNameEditText.text.toString()
         if (name.isBlank()) return
 
         lifecycleScope.launch {
-            // Копируем изображение во внутреннее хранилище, если оно выбрано
             val coverPath = selectedImageUri?.let { uri ->
                 ImageUtils.copyImageToInternalStorage(requireContext(), uri)
             }
 
-            // Создаем плейлист
             val playlist = Playlist(
                 name = name,
                 description = binding.playlistDescriptionEditText.text.toString().takeIf { it.isNotBlank() },
@@ -131,7 +167,6 @@ class CreatePlaylistFragment : Fragment() {
                 tracksCount = 0
             )
 
-            // Сохраняем плейлист
             viewModel.createPlaylist(playlist)
 
             Toast.makeText(
@@ -140,8 +175,8 @@ class CreatePlaylistFragment : Fragment() {
                 Toast.LENGTH_SHORT
             ).show()
 
-            // Возвращаемся на предыдущий экран
-            findNavController().popBackStack()
+            findNavController().previousBackStackEntry?.savedStateHandle?.set("playlist_created", true)
+            findNavController().navigateUp()
         }
     }
 
@@ -166,6 +201,14 @@ class CreatePlaylistFragment : Fragment() {
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable(KEY_SELECTED_IMAGE_URI, selectedImageUri)
+        outState.putBoolean(KEY_IS_DATA_CHANGED, isDataChanged)
+        outState.putString(KEY_CURRENT_NAME, currentName)
+        outState.putString(KEY_CURRENT_DESCRIPTION, currentDescription)
     }
 
     override fun onDestroyView() {

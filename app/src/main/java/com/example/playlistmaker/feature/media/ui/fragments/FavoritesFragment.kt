@@ -34,6 +34,7 @@ class FavoritesFragment : Fragment() {
 
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
+        private const val KEY_RECYCLER_POSITION = "recycler_position"
 
         fun newInstance() = FavoritesFragment()
     }
@@ -52,6 +53,11 @@ class FavoritesFragment : Fragment() {
 
         setupRecyclerView()
         setupObservers()
+
+        savedInstanceState?.let {
+            val position = it.getInt(KEY_RECYCLER_POSITION, 0)
+            binding.favoritesRecyclerView.scrollToPosition(position)
+        }
     }
 
     private fun setupRecyclerView() {
@@ -126,6 +132,12 @@ class FavoritesFragment : Fragment() {
         binding.ivEmptyState.visibility = View.VISIBLE
         binding.tvEmptyMessage.visibility = View.VISIBLE
         binding.tvEmptyMessage.text = message
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val layoutManager = binding.favoritesRecyclerView.layoutManager as LinearLayoutManager
+        outState.putInt(KEY_RECYCLER_POSITION, layoutManager.findFirstVisibleItemPosition())
     }
 
     override fun onDestroyView() {

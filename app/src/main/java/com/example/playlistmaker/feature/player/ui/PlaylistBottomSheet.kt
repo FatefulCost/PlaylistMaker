@@ -17,6 +17,11 @@ import com.example.playlistmaker.feature.media.ui.adapters.PlaylistSimpleAdapter
 import com.example.playlistmaker.feature.player.ui.viewmodel.PlaylistBottomSheetViewModel
 import com.example.playlistmaker.feature.search.domain.model.Track
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.shape.MaterialShapeDrawable
+import androidx.core.content.ContextCompat
+import android.graphics.Color
+import android.view.WindowManager
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -42,6 +47,11 @@ class PlaylistBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NORMAL, R.style.CustomBottomSheetDialog)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -56,11 +66,22 @@ class PlaylistBottomSheet : BottomSheetDialogFragment() {
 
         currentTrack = arguments?.getSerializable(ARG_TRACK) as? Track
 
+        setupBottomSheet(view)
         setupRecyclerView()
         setupClickListeners()
         setupObservers()
 
         viewModel.loadPlaylists()
+    }
+
+    private fun setupBottomSheet(view: View) {
+        dialog?.apply {
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+            val behavior = BottomSheetBehavior.from(view.parent as View)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.skipCollapsed = true
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        }
     }
 
     private fun setupRecyclerView() {
@@ -104,15 +125,13 @@ class PlaylistBottomSheet : BottomSheetDialogFragment() {
             val isTrackInPlaylist = viewModel.isTrackInPlaylist(playlist.id, track.trackId)
 
             if (isTrackInPlaylist) {
-                // Трек уже есть в плейлисте
                 Toast.makeText(
                     requireContext(),
                     getString(R.string.track_already_in_playlist, playlist.name),
                     Toast.LENGTH_SHORT
                 ).show()
-                dismiss()
+                // Не закрываем Bottom Sheet
             } else {
-                // Добавляем трек в плейлист
                 val success = viewModel.addTrackToPlaylist(playlist.id, track.trackId)
                 if (success) {
                     Toast.makeText(
@@ -127,7 +146,7 @@ class PlaylistBottomSheet : BottomSheetDialogFragment() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                dismiss()
+                dismiss() // Закрываем только при успешном добавлении
             }
         }
     }
