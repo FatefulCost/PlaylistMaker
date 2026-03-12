@@ -130,9 +130,8 @@ class PlaylistBottomSheet : BottomSheetDialogFragment() {
                     getString(R.string.track_already_in_playlist, playlist.name),
                     Toast.LENGTH_SHORT
                 ).show()
-                // Не закрываем Bottom Sheet
             } else {
-                val success = viewModel.addTrackToPlaylist(playlist.id, track.trackId)
+                val success = viewModel.addTrackToPlaylist(playlist.id, track)
                 if (success) {
                     Toast.makeText(
                         requireContext(),
@@ -146,7 +145,7 @@ class PlaylistBottomSheet : BottomSheetDialogFragment() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                dismiss() // Закрываем только при успешном добавлении
+                dismiss()
             }
         }
     }

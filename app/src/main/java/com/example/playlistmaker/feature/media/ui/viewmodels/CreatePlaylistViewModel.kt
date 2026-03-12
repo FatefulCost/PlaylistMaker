@@ -15,4 +15,10 @@ class CreatePlaylistViewModel(
             playlistInteractor.createPlaylist(playlist)
         }
     }
+
+    fun updatePlaylist(playlist: Playlist) {
+        viewModelScope.launch {
+            playlistInteractor.updatePlaylist(playlist)
+        }
+    }
 }
