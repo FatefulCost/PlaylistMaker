@@ -137,6 +137,7 @@ class CreatePlaylistFragment : Fragment() {
 
         // Показываем CardView с изображением
         binding.coverCardView.visibility = View.VISIBLE
+        binding.linesCover.visibility = View.GONE
 
         // Убираем фон у ImageView
         binding.coverImageView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
