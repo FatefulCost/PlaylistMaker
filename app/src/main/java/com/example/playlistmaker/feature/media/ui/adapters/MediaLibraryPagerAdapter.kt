@@ -18,4 +18,12 @@ class MediaLibraryPagerAdapter(fragmentActivity: FragmentActivity) :
             else -> throw IllegalArgumentException("Invalid position: $position")
         }
     }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
+    override fun containsItem(itemId: Long): Boolean {
+        return itemId in 0 until itemCount
+    }
 }

@@ -11,9 +11,15 @@ import com.example.playlistmaker.feature.favorites.data.repository.FavoritesRepo
 import com.example.playlistmaker.feature.favorites.domain.interactor.FavoritesInteractor
 import com.example.playlistmaker.feature.favorites.domain.interactor.impl.FavoritesInteractorImpl
 import com.example.playlistmaker.feature.favorites.domain.repository.FavoritesRepository
+import com.example.playlistmaker.feature.media.data.repository.PlaylistRepositoryImpl
+import com.example.playlistmaker.feature.media.domain.interactor.PlaylistInteractor
+import com.example.playlistmaker.feature.media.domain.interactor.impl.PlaylistInteractorImpl
+import com.example.playlistmaker.feature.media.domain.repository.PlaylistRepository
+import com.example.playlistmaker.feature.media.ui.viewmodels.CreatePlaylistViewModel
 import com.example.playlistmaker.feature.media.ui.viewmodels.FavoritesViewModel
 import com.example.playlistmaker.feature.media.ui.viewmodels.PlaylistsViewModel
 import com.example.playlistmaker.feature.player.ui.viewmodel.PlayerViewModel
+import com.example.playlistmaker.feature.player.ui.viewmodel.PlaylistBottomSheetViewModel
 import com.example.playlistmaker.feature.search.data.repository.HistoryRepositoryImpl
 import com.example.playlistmaker.feature.search.data.repository.TrackRepositoryImpl
 import com.example.playlistmaker.feature.search.domain.interactor.HistoryInteractor
@@ -142,8 +148,21 @@ val featureModule = module {
         androidContext().getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
     }
 
+
+
+    // playlists
+    single<PlaylistRepository> {
+        PlaylistRepositoryImpl(get())
+    }
+
+    single<PlaylistInteractor> {
+        PlaylistInteractorImpl(get())
+    }
+
     // Медиатека
-    viewModel { PlaylistsViewModel() }
+    viewModel { PlaylistsViewModel(get()) }
+    viewModel { CreatePlaylistViewModel(get()) }
     viewModel { FavoritesViewModel(get()) }
     viewModel { PlayerViewModel(get()) }
+    viewModel { PlaylistBottomSheetViewModel(get()) }
 }

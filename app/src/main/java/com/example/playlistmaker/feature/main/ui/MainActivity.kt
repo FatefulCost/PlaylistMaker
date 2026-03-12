@@ -1,8 +1,10 @@
 package com.example.playlistmaker.feature.main.ui
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -44,8 +46,8 @@ class MainActivity : AppCompatActivity() {
 
         // Добавляем слушатель для отслеживания текущего экрана
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            // Проверяем, открыт ли PlayerFragment
-            if (destination.id == R.id.playerFragment) {
+            // Проверяем, открыт ли PlayerFragment или CreatePlaylistFragment
+            if (destination.id == R.id.playerFragment || destination.id == R.id.createPlaylistFragment) {
                 // Скрываем BottomNavigationView
                 bottomNavigationView.visibility = View.GONE
             } else {

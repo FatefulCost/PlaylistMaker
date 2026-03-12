@@ -15,6 +15,9 @@ class MediaContainerFragment : Fragment() {
     private var _binding: FragmentMediaContainerBinding? = null
     private val binding get() = _binding!!
 
+    private lateinit var pagerAdapter: MediaLibraryPagerAdapter
+    private var currentViewPagerPosition = 0
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -26,6 +29,9 @@ class MediaContainerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (savedInstanceState != null) {
+            currentViewPagerPosition = savedInstanceState.getInt("viewpager_position", 0)
+        }
 
         setupViewPager()
         setupToolbar()
@@ -36,7 +42,11 @@ class MediaContainerFragment : Fragment() {
     }
 
     private fun setupViewPager() {
-        binding.viewPagerMedia.adapter = MediaLibraryPagerAdapter(requireActivity())
+        pagerAdapter = MediaLibraryPagerAdapter(requireActivity())
+        binding.viewPagerMedia.adapter = pagerAdapter
+        binding.viewPagerMedia.isSaveEnabled = false
+        binding.viewPagerMedia.isSaveFromParentEnabled = false
+        binding.viewPagerMedia.setCurrentItem(currentViewPagerPosition, false)
 
         TabLayoutMediator(binding.tabLayoutMedia, binding.viewPagerMedia) { tab, position ->
             tab.text = when (position) {
@@ -45,6 +55,14 @@ class MediaContainerFragment : Fragment() {
                 else -> ""
             }
         }.attach()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        if (_binding != null) {
+            currentViewPagerPosition = binding.viewPagerMedia.currentItem
+            outState.putInt("viewpager_position", currentViewPagerPosition)
+        }
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroyView() {
