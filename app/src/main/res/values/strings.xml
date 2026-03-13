@@ -73,5 +73,26 @@
     <string name="track_added_to_playlist" translatable="false">Добавлено в плейлист %s</string>
     <string name="track_already_in_playlist" translatable="false">Трек уже добавлен в плейлист %s</string>
 
+    <string name="total_duration" translatable="false">Общая длительность</string>
+    <string name="delete_playlist_title" translatable="false">Удалить плейлист</string>
+    <string name="delete_playlist_confirmation" translatable="false">Вы уверены, что хотите удалить этот плейлист?</string>
+    <string name="edit" translatable="false">Редактировать</string>
+    <string name="edit_playlist" translatable="false">Редактировать</string>
+    <string name="save" translatable="false">Сохранить</string>
+    <string name="delete" translatable="false">Удалить</string>
+    <string name="delete_track_title" translatable="false">Удалить трек</string>
+    <string name="delete_track_confirmation" translatable="false">Хотите удалить трек?</string>
+    <string name="yes" translatable="false">Да</string>
+    <string name="no" translatable="false">Нет</string>
+    <string name="no_tracks_in_playlist" translatable="false">В этом плейлисте нет треков</string>
+    <string name="share_playlist_empty" translatable="false">В этом плейлисте нет списка треков, которым можно поделиться</string>
+    <string name="playlist_updated" translatable="false">Плейлист обновлен</string>
+    <string name="playlist_deleted" translatable="false">Плейлист удален</string>
+    <string name="track_removed_from_playlist" translatable="false">Трек удален из плейлиста</string>
+    <string name="menu_share" translatable="false">Поделиться</string>
+    <string name="menu_edit" translatable="false">Редактировать информацию</string>
+    <string name="menu_delete" translatable="false">Удалить плейлист</string>
+    <string name="tracks_list" translatable="false">Список треков</string>
+
 </resources>
 

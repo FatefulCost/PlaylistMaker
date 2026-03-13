@@ -1,9 +1,9 @@
 package com.example.playlistmaker.feature.media.ui.fragments
 
 import android.app.AlertDialog
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +24,7 @@ import com.example.playlistmaker.feature.media.domain.model.Playlist
 import com.example.playlistmaker.feature.media.ui.viewmodels.CreatePlaylistViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.io.File
 
 class CreatePlaylistFragment : Fragment() {
 
@@ -37,25 +38,38 @@ class CreatePlaylistFragment : Fragment() {
     private var currentName = ""
     private var currentDescription = ""
 
-    // Ключи для сохранения состояния
+    // Переменные для режима редактирования
+    private var isEditMode = false
+    private var editingPlaylist: Playlist? = null
+    private var originalCoverPath: String? = null
+
     companion object {
         private const val KEY_SELECTED_IMAGE_URI = "selected_image_uri"
         private const val KEY_IS_DATA_CHANGED = "is_data_changed"
         private const val KEY_CURRENT_NAME = "current_name"
         private const val KEY_CURRENT_DESCRIPTION = "current_description"
+        private const val TAG = "CreatePlaylistFragment"
     }
 
-    // Регистрируем Photo Picker
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             selectedImageUri = uri
             loadImageToView(uri)
             isDataChanged = true
+            Log.d(TAG, "Image selected: $uri")
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Получаем аргументы
+        arguments?.let {
+            isEditMode = it.getBoolean("edit_mode", false)
+            editingPlaylist = it.getSerializable("playlist") as? Playlist
+            Log.d(TAG, "onCreate - isEditMode: $isEditMode, playlist: ${editingPlaylist?.name}")
+        }
+
         if (savedInstanceState != null) {
             selectedImageUri = savedInstanceState.getParcelable(KEY_SELECTED_IMAGE_URI)
             isDataChanged = savedInstanceState.getBoolean(KEY_IS_DATA_CHANGED, false)
@@ -76,35 +90,82 @@ class CreatePlaylistFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        Log.d(TAG, "onViewCreated - isEditMode: $isEditMode")
+
+        setupUI()
         setupClickListeners()
         setupTextWatchers()
         setupBackPressedCallback()
-        restoreData()
+
+        if (isEditMode) {
+            setupEditMode()
+        }
+
         updateCreateButtonState()
     }
 
-    private fun restoreData() {
-        binding.playlistNameEditText.setText(currentName)
-        binding.playlistDescriptionEditText.setText(currentDescription)
-        if (selectedImageUri != null) {
-            loadImageToView(selectedImageUri!!)
+    private fun setupUI() {
+        if (isEditMode) {
+            binding.toolbar.title = getString(R.string.edit_playlist)
+            binding.createButton.text = getString(R.string.save)
+        } else {
+            binding.toolbar.title = getString(R.string.new_playlist)
+            binding.createButton.text = getString(R.string.create)
+        }
+    }
+
+    private fun setupEditMode() {
+        editingPlaylist?.let { playlist ->
+            Log.d(TAG, "Setting up edit mode for playlist: ${playlist.name}")
+
+            // Устанавливаем название
+            currentName = playlist.name
+            binding.playlistNameEditText.setText(playlist.name)
+
+            // Устанавливаем описание
+            playlist.description?.let {
+                currentDescription = it
+                binding.playlistDescriptionEditText.setText(it)
+            }
+
+            // Загружаем обложку
+            if (!playlist.coverPath.isNullOrEmpty()) {
+                val coverFile = File(playlist.coverPath)
+                if (coverFile.exists()) {
+                    // Создаем URI из файла
+                    selectedImageUri = Uri.fromFile(coverFile)
+                    loadImageToView(selectedImageUri!!)
+                    originalCoverPath = playlist.coverPath
+                    Log.d(TAG, "Cover loaded from file: ${playlist.coverPath}")
+                } else {
+                    Log.d(TAG, "Cover file not found: ${playlist.coverPath}")
+                    // Если файл не найден, показываем заглушку
+                    selectedImageUri = null
+                    showPlaceholder()
+                }
+            } else {
+                // Если обложки нет, показываем заглушку
+                selectedImageUri = null
+                showPlaceholder()
+            }
         }
     }
 
     private fun setupClickListeners() {
-        // Кнопка назад в тулбаре
         binding.toolbar.setNavigationOnClickListener {
             handleBackPress()
         }
 
-        // Область для выбора обложки
         binding.coverContainer.setOnClickListener {
             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
-        // Кнопка создания плейлиста
         binding.createButton.setOnClickListener {
-            createPlaylist()
+            if (isEditMode) {
+                updatePlaylist()
+            } else {
+                createPlaylist()
+            }
         }
     }
 
@@ -148,7 +209,10 @@ class CreatePlaylistFragment : Fragment() {
             .placeholder(R.drawable.vector_placeholder)
             .error(R.drawable.vector_placeholder)
             .centerCrop()
+            .transform(RoundedCorners(16))
             .into(binding.coverImageView)
+
+        Log.d(TAG, "Image loaded to view from URI: $uri")
     }
 
     private fun createPlaylist() {
@@ -176,16 +240,86 @@ class CreatePlaylistFragment : Fragment() {
                 Toast.LENGTH_SHORT
             ).show()
 
-            findNavController().previousBackStackEntry?.savedStateHandle?.set("playlist_created", true)
+            // Уведомляем о создании плейлиста
+            findNavController().previousBackStackEntry?.savedStateHandle?.set("playlist_updated", true)
             findNavController().navigateUp()
         }
     }
 
+    private fun updatePlaylist() {
+        val name = binding.playlistNameEditText.text.toString()
+        if (name.isBlank()) return
+
+        lifecycleScope.launch {
+            try {
+                val coverPath = when {
+                    selectedImageUri != null && selectedImageUri.toString().startsWith("content://") -> {
+                        Log.d(TAG, "Copying new image from content URI")
+                        ImageUtils.copyImageToInternalStorage(requireContext(), selectedImageUri!!)
+                    }
+                    selectedImageUri != null && selectedImageUri.toString().startsWith("file://") -> {
+                        Log.d(TAG, "Using existing file URI")
+                        selectedImageUri.toString().substringAfter("file://")
+                    }
+                    editingPlaylist?.coverPath != null -> {
+                        Log.d(TAG, "Keeping existing cover path: ${editingPlaylist?.coverPath}")
+                        editingPlaylist?.coverPath
+                    }
+                    else -> {
+                        Log.d(TAG, "No cover")
+                        null
+                    }
+                }
+
+                if (coverPath != null &&
+                    editingPlaylist?.coverPath != null &&
+                    coverPath != editingPlaylist?.coverPath) {
+                    try {
+                        Log.d(TAG, "Deleting old cover: ${editingPlaylist?.coverPath}")
+                        ImageUtils.deleteImage(editingPlaylist?.coverPath!!)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error deleting old cover", e)
+                    }
+                }
+
+                val updatedPlaylist = editingPlaylist?.copy(
+                    name = name,
+                    description = binding.playlistDescriptionEditText.text.toString().takeIf { it.isNotBlank() },
+                    coverPath = coverPath
+                ) ?: return@launch
+
+                Log.d(TAG, "Updating playlist with coverPath: $coverPath")
+                viewModel.updatePlaylist(updatedPlaylist)
+
+                Toast.makeText(
+                    requireContext(),
+                    R.string.playlist_updated,
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                findNavController().previousBackStackEntry?.savedStateHandle?.set("playlist_updated", true)
+                findNavController().navigateUp()
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating playlist", e)
+                Toast.makeText(
+                    requireContext(),
+                    "Ошибка при обновлении плейлиста",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
     private fun handleBackPress() {
-        if (hasUnsavedChanges()) {
-            showExitConfirmationDialog()
-        } else {
+        if (isEditMode) {
             findNavController().navigateUp()
+        } else {
+            if (hasUnsavedChanges()) {
+                showExitConfirmationDialog()
+            } else {
+                findNavController().navigateUp()
+            }
         }
     }
 
@@ -210,6 +344,13 @@ class CreatePlaylistFragment : Fragment() {
         outState.putBoolean(KEY_IS_DATA_CHANGED, isDataChanged)
         outState.putString(KEY_CURRENT_NAME, currentName)
         outState.putString(KEY_CURRENT_DESCRIPTION, currentDescription)
+    }
+
+    private fun showPlaceholder() {
+        binding.addPhotoLayout.visibility = View.VISIBLE
+        binding.coverCardView.visibility = View.GONE
+        binding.linesCover.visibility = View.VISIBLE
+        binding.coverImageView.setImageDrawable(null)
     }
 
     override fun onDestroyView() {

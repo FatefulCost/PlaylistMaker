@@ -35,6 +35,7 @@
     <color name="new_playlist_button">#FFFFFF</color>
     <color name="song_details_color_in_sheet">#FFFFFF</color>
     <color name="placeholder_background">#1A1B22</color>
+    <color name="bottom_sheet_indicator">#FFFFFF</color>
 
     <color name="playlist_hint_when_clicked">#FFFFFF</color>
 
