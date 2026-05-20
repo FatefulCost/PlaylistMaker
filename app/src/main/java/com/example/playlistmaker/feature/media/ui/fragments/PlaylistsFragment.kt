@@ -1,9 +1,11 @@
 package com.example.playlistmaker.feature.media.ui.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -46,24 +48,61 @@ class PlaylistsFragment : Fragment() {
         setupRecyclerView()
         setupClickListeners()
         setupObservers()
+
+        observePlaylistCreation()
+        observePlaylistDeletion()
+    }
+
+    private fun observePlaylistDeletion() {
+        findNavController().currentBackStackEntry?.savedStateHandle
+            ?.getLiveData<Boolean>("playlist_deleted")
+            ?.observe(viewLifecycleOwner) { deleted ->
+                if (deleted) {
+                    Log.d("PlaylistsFragment", "Playlist deleted, refreshing list")
+                    // Обновляем список плейлистов
+                    viewModel.loadPlaylists()
+                    // Показываем сообщение об удалении
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.playlist_deleted,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    // Очищаем handle
+                    findNavController().currentBackStackEntry?.savedStateHandle?.remove<Boolean>("playlist_deleted")
+                }
+            }
+    }
+
+    private fun observePlaylistCreation() {
+        findNavController().currentBackStackEntry?.savedStateHandle
+            ?.getLiveData<Boolean>("playlist_created")
+            ?.observe(viewLifecycleOwner) { created ->
+                if (created) {
+                    viewModel.loadPlaylists()
+                    binding.playlistsRecyclerView.smoothScrollToPosition(0)
+                    findNavController().currentBackStackEntry?.savedStateHandle?.remove<Boolean>("playlist_created")
+                }
+            }
     }
 
     override fun onResume() {
         super.onResume()
-        // При возвращении на экран обновляем список плейлистов
+        // При возвращении на экран также обновляем список плейлистов
         viewModel.loadPlaylists()
     }
 
     private fun setupRecyclerView() {
         playlistsAdapter = PlaylistsAdapter(
             onPlaylistClick = { playlist ->
-                // Пока не реализовано - переход на экран плейлиста
-                // findNavController().navigate(R.id.playlistFragment, bundle)
+                val bundle = Bundle().apply {
+                    putSerializable("playlist", playlist)
+                }
+                findNavController().navigate(R.id.playlistFragment, bundle)
             }
         )
 
         binding.playlistsRecyclerView.apply {
-            layoutManager = GridLayoutManager(requireContext(), 2) // 2 колонки
+            layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = playlistsAdapter
             setHasFixedSize(true)
         }
@@ -84,29 +123,18 @@ class PlaylistsFragment : Fragment() {
                 is PlaylistsState.Error -> showError(state.message)
             }
         }
-
-        // Слушаем возврат с экрана создания плейлиста
-        findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("playlist_created")
-            ?.observe(viewLifecycleOwner) { created ->
-                if (created) {
-                    // Показываем плейлисты и прокручиваем к началу
-                    binding.playlistsRecyclerView.smoothScrollToPosition(0)
-                }
-            }
     }
 
     private fun showLoading() {
         binding.progressBar.visibility = View.VISIBLE
         binding.playlistsRecyclerView.visibility = View.GONE
-        binding.ivEmptyState.visibility = View.GONE
-        binding.tvEmptyMessage.visibility = View.GONE
+        binding.emptyStateLayout.visibility = View.GONE
     }
 
     private fun showPlaylists(playlists: List<Playlist>) {
         binding.progressBar.visibility = View.GONE
         binding.playlistsRecyclerView.visibility = View.VISIBLE
-        binding.ivEmptyState.visibility = View.GONE
-        binding.tvEmptyMessage.visibility = View.GONE
+        binding.emptyStateLayout.visibility = View.GONE
 
         playlistsAdapter.updatePlaylists(playlists)
     }
@@ -114,15 +142,13 @@ class PlaylistsFragment : Fragment() {
     private fun showEmptyState() {
         binding.progressBar.visibility = View.GONE
         binding.playlistsRecyclerView.visibility = View.GONE
-        binding.ivEmptyState.visibility = View.VISIBLE
-        binding.tvEmptyMessage.visibility = View.VISIBLE
+        binding.emptyStateLayout.visibility = View.VISIBLE
     }
 
     private fun showError(message: String) {
         binding.progressBar.visibility = View.GONE
         binding.playlistsRecyclerView.visibility = View.GONE
-        binding.ivEmptyState.visibility = View.VISIBLE
-        binding.tvEmptyMessage.visibility = View.VISIBLE
+        binding.emptyStateLayout.visibility = View.VISIBLE
         binding.tvEmptyMessage.text = message
     }
 

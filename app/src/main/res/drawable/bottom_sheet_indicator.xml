@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/bottom_sheet_indicator" />
+    <corners android:radius="2dp" /> <!-- Половина высоты (4dp/2 = 2dp) -->
+    <size
+        android:width="50dp"
+        android:height="4dp" />
+</shape>

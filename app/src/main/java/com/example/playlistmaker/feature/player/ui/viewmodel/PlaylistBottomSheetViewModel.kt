@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.feature.media.domain.interactor.PlaylistInteractor
 import com.example.playlistmaker.feature.media.domain.model.Playlist
+import com.example.playlistmaker.feature.search.domain.model.Track
 import kotlinx.coroutines.launch
 
 class PlaylistBottomSheetViewModel(
@@ -26,9 +27,10 @@ class PlaylistBottomSheetViewModel(
         return playlistInteractor.isTrackInPlaylist(playlistId, trackId)
     }
 
-    suspend fun addTrackToPlaylist(playlistId: Long, trackId: Long): Boolean {
+    suspend fun addTrackToPlaylist(playlistId: Long, track: Track): Boolean {
         return try {
-            playlistInteractor.addTrackToPlaylist(playlistId, trackId)
+            playlistInteractor.saveTrackToPlaylist(track)
+            playlistInteractor.addTrackToPlaylist(playlistId, track.trackId)
             true
         } catch (e: Exception) {
             e.printStackTrace()

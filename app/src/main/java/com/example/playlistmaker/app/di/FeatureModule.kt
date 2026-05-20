@@ -20,6 +20,8 @@ import com.example.playlistmaker.feature.media.ui.viewmodels.FavoritesViewModel
 import com.example.playlistmaker.feature.media.ui.viewmodels.PlaylistsViewModel
 import com.example.playlistmaker.feature.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.feature.player.ui.viewmodel.PlaylistBottomSheetViewModel
+import com.example.playlistmaker.feature.player.ui.viewmodel.PlaylistMenuViewModel
+import com.example.playlistmaker.feature.player.ui.viewmodel.PlaylistViewModel
 import com.example.playlistmaker.feature.search.data.repository.HistoryRepositoryImpl
 import com.example.playlistmaker.feature.search.data.repository.TrackRepositoryImpl
 import com.example.playlistmaker.feature.search.domain.interactor.HistoryInteractor
@@ -156,7 +158,7 @@ val featureModule = module {
     }
 
     single<PlaylistInteractor> {
-        PlaylistInteractorImpl(get())
+        PlaylistInteractorImpl(get(), get())
     }
 
     // Медиатека
@@ -165,4 +167,6 @@ val featureModule = module {
     viewModel { FavoritesViewModel(get()) }
     viewModel { PlayerViewModel(get()) }
     viewModel { PlaylistBottomSheetViewModel(get()) }
+    viewModel { PlaylistViewModel(get()) }
+    viewModel { PlaylistMenuViewModel(get()) }
 }

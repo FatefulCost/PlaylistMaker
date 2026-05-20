@@ -45,11 +45,4 @@ class PlaylistsViewModel(
             }
             .launchIn(viewModelScope)
     }
-
-    fun createPlaylist(playlist: Playlist) {
-        viewModelScope.launch {
-            playlistInteractor.createPlaylist(playlist)
-            loadPlaylists()
-        }
-    }
 }

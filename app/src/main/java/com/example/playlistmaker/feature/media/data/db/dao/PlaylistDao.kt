@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Delete
 import com.example.playlistmaker.feature.media.data.db.entity.PlaylistEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +16,12 @@ interface PlaylistDao {
     @Update
     suspend fun updatePlaylist(playlist: PlaylistEntity)
 
+    @Delete
+    suspend fun deletePlaylist(playlist: PlaylistEntity)
+
+    @Query("DELETE FROM playlists WHERE id = :playlistId")
+    suspend fun deletePlaylistById(playlistId: Long)
+
     @Query("SELECT * FROM playlists ORDER BY id DESC")
     fun getAllPlaylists(): Flow<List<PlaylistEntity>>
 
@@ -23,4 +30,7 @@ interface PlaylistDao {
 
     @Query("SELECT * FROM playlists ORDER BY id DESC")
     suspend fun getPlaylistsSync(): List<PlaylistEntity>
+
+    @Query("SELECT COUNT(*) FROM playlists WHERE id = :playlistId")
+    suspend fun checkPlaylistExists(playlistId: Long): Int
 }
